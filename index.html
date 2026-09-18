@@ -8,6 +8,12 @@
     <title>TourismPulse Malaysia</title>
 
     <link rel="stylesheet" href="style.css">
+    <!-- Leaflet Map CSS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
 </head>
 
 <body>
@@ -94,7 +100,7 @@
             <div class="kpi-card">
                 <div class="kpi-icon">RM</div>
                 <p class="kpi-label">2023 Tourism Receipts</p>
-                <h3>RM84.9B</h3>
+                <h3 id="total-receipts">Loading...</h3>
                 <p class="kpi-note">Across Malaysia</p>
             </div>
 
@@ -102,7 +108,7 @@
             <div class="kpi-card">
                 <div class="kpi-icon">↗</div>
                 <p class="kpi-label">National Recovery</p>
-                <h3>82%</h3>
+                <h3 id="national-recovery">Loading...</h3>
                 <p class="kpi-note">2023 receipts vs 2019</p>
             </div>
 
@@ -110,7 +116,7 @@
             <div class="kpi-card">
                 <div class="kpi-icon">16</div>
                 <p class="kpi-label">Areas Analysed</p>
-                <h3>16</h3>
+                <h3 id="areas-analysed">Loading...</h3>
                 <p class="kpi-note">States & Federal Territories</p>
             </div>
 
@@ -214,14 +220,24 @@
         </div>
 
 
-        <div class="map-placeholder">
+        <div class="map-container">
 
-            <div>
-                <p>INTERACTIVE MALAYSIA MAP</p>
-                <span>Coming next</span>
-            </div>
+    <div class="map-controls">
 
-        </div>
+        <label for="map-indicator">View map by</label>
+
+        <select id="map-indicator">
+            <option value="recovery">Tourism Recovery</option>
+            <option value="receipts">Tourism Receipts</option>
+            <option value="visitors">Visitors</option>
+            <option value="trips">Trips</option>
+        </select>
+
+    </div>
+
+    <div id="malaysia-map"></div>
+
+</div>
 
     </section>
 
@@ -267,8 +283,14 @@
     </footer>
 
 
-    <script src="script.js"></script>
+<!-- Leaflet Map -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- CSV Reader -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- TourismPulse JavaScript -->
+<script src="script.js"></script>
 
 </body>
-
 </html>
