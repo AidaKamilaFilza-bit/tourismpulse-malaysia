@@ -1,4 +1,6 @@
-/* Basic page settings */
+/* ================================
+   GENERAL
+================================ */
 
 * {
     margin: 0;
@@ -11,108 +13,499 @@ html {
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #ffffff;
-    color: #1f2937;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #17252a;
+    background: #ffffff;
+}
+
+.section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #087f5b;
+    margin-bottom: 14px;
 }
 
 
-/* Navigation */
+/* ================================
+   NAVIGATION
+================================ */
 
 .navbar {
+    height: 75px;
+    padding: 0 7%;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
 
-    padding: 20px 8%;
-
-    background-color: #ffffff;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid #eeeeee;
 
     position: sticky;
     top: 0;
-
-    border-bottom: 1px solid #eeeeee;
+    z-index: 1000;
 }
 
 .logo {
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 700;
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.logo-icon {
+    color: #087f5b;
+}
+
+.logo-country {
+    color: #087f5b;
 }
 
 .nav-links {
     display: flex;
-    gap: 25px;
+    gap: 28px;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #1f2937;
+    color: #46555a;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    transition: 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: #087f5b;
 }
 
 
-/* Home */
+/* ================================
+   HERO
+================================ */
 
 .hero {
-    min-height: 90vh;
+    min-height: 680px;
 
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
 
-    text-align: center;
+    padding: 100px 10%;
 
-    padding: 50px 10%;
+    background:
+        radial-gradient(
+            circle at 85% 30%,
+            rgba(8, 127, 91, 0.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #f8fcfa,
+            #ffffff
+        );
+}
+
+.hero-content {
+    max-width: 850px;
+}
+
+.tag {
+    display: inline-block;
+
+    padding: 9px 15px;
+    margin-bottom: 25px;
+
+    border: 1px solid #cce8df;
+    border-radius: 30px;
+
+    background: #f1faf7;
+
+    color: #087f5b;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .hero h1 {
-    font-size: 55px;
-    max-width: 850px;
-    margin-bottom: 20px;
+    font-size: 64px;
+    line-height: 1.08;
+    letter-spacing: -2px;
+
+    max-width: 900px;
+
+    margin-bottom: 25px;
 }
 
-.hero p {
-    font-size: 20px;
+.hero h1 span {
+    color: #087f5b;
+}
+
+.hero-description {
     max-width: 650px;
 
-    line-height: 1.6;
+    font-size: 19px;
+    line-height: 1.7;
+
+    color: #5d6b70;
 
     margin-bottom: 35px;
 }
 
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+}
 
-/* Button */
+.primary-button,
+.secondary-button {
+    display: inline-block;
 
-.main-button {
-    text-decoration: none;
-
-    background-color: #087f5b;
-    color: white;
-
-    padding: 15px 28px;
+    padding: 15px 24px;
 
     border-radius: 8px;
 
-    font-weight: bold;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.primary-button {
+    background: #087f5b;
+    color: white;
+}
+
+.primary-button:hover {
+    background: #066b4d;
+}
+
+.secondary-button {
+    color: #17252a;
+    border: 1px solid #d9dfdd;
+    background: white;
 }
 
 
-/* Website sections */
+/* ================================
+   KPI SECTION
+================================ */
 
-.section {
-    min-height: 70vh;
-
-    padding: 100px 10%;
+.kpi-section {
+    padding: 100px 8%;
 }
 
-.section h2 {
+.kpi-heading {
+    max-width: 650px;
+    margin-bottom: 45px;
+}
+
+.kpi-heading h2 {
     font-size: 38px;
+    margin-bottom: 15px;
+}
+
+.kpi-heading > p:last-child {
+    color: #68777b;
+    line-height: 1.6;
+}
+
+.kpi-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+}
+
+.kpi-card {
+    padding: 28px;
+
+    border: 1px solid #e5e9e7;
+    border-radius: 14px;
+
+    background: white;
+}
+
+.kpi-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #edf8f4;
+    color: #087f5b;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    margin-bottom: 25px;
+}
+
+.kpi-label {
+    color: #667579;
+    font-size: 13px;
+
+    margin-bottom: 8px;
+}
+
+.kpi-card h3 {
+    font-size: 32px;
+
+    margin-bottom: 8px;
+}
+
+.kpi-note {
+    font-size: 12px;
+    color: #8a9699;
+}
+
+
+/* ================================
+   WHY TOURISMPULSE
+================================ */
+
+.why-section {
+    padding: 100px 8%;
+    background: #f7faf9;
+}
+
+.why-heading {
+    max-width: 720px;
+
+    margin-bottom: 50px;
+}
+
+.why-heading h2 {
+    font-size: 42px;
+
+    margin-bottom: 15px;
+}
+
+.why-heading > p:last-child {
+    color: #657478;
+
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+.pillar-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 25px;
+}
+
+.pillar-card {
+    padding: 35px;
+
+    background: white;
+
+    border: 1px solid #e6ebe9;
+    border-radius: 14px;
+}
+
+.pillar-number {
+    color: #087f5b;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    margin-bottom: 35px;
+}
+
+.pillar-card h3 {
+    font-size: 22px;
+
+    margin-bottom: 15px;
+}
+
+.pillar-card p {
+    color: #657478;
+
+    line-height: 1.7;
+}
+
+
+/* ================================
+   EXPLORE
+================================ */
+
+.explore-preview {
+    min-height: 650px;
+
+    padding: 90px 8%;
+
+    display: grid;
+
+    grid-template-columns: 0.8fr 1.2fr;
+
+    gap: 70px;
+
+    align-items: center;
+
+    background: #102f2a;
+    color: white;
+}
+
+.light-label {
+    color: #7fd4b9;
+}
+
+.explore-text h2 {
+    font-size: 44px;
+
+    line-height: 1.15;
+
     margin-bottom: 20px;
 }
 
-.section p {
-    font-size: 18px;
+.explore-text > p:not(.section-label) {
+    color: #c4d3cf;
+
     line-height: 1.7;
 
-    max-width: 700px;
+    margin-bottom: 30px;
+}
+
+.explore-button {
+    padding: 14px 22px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: white;
+    color: #173e37;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.map-placeholder {
+    min-height: 420px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px dashed #608078;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    text-align: center;
+}
+
+.map-placeholder p {
+    font-size: 14px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 10px;
+}
+
+.map-placeholder span {
+    color: #93aaa4;
+    font-size: 13px;
+}
+
+
+/* ================================
+   PLACEHOLDERS
+================================ */
+
+.placeholder-section {
+    min-height: 350px;
+
+    padding: 100px 8%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.placeholder-section h2 {
+    font-size: 38px;
+}
+
+
+/* ================================
+   FOOTER
+================================ */
+
+footer {
+    padding: 45px 8%;
+
+    display: flex;
+    justify-content: space-between;
+
+    background: #0b211d;
+    color: white;
+}
+
+footer p {
+    color: #91a7a1;
+
+    font-size: 13px;
+
+    margin-top: 6px;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 900px) {
+
+    .nav-links {
+        display: none;
+    }
+
+    .hero h1 {
+        font-size: 46px;
+    }
+
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pillar-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .explore-preview {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 550px) {
+
+    .hero {
+        padding: 80px 7%;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
 }
