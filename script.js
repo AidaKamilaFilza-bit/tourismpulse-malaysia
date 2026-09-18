@@ -1,0 +1,1 @@
+console.log("TourismPulse Malaysia is running!");
