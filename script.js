@@ -1,4 +1,13 @@
 // ========================================
+// MAP DATA STORAGE
+// ========================================
+
+let tourismMapData = [];
+let recoveryMapData = [];
+let malaysiaGeoJSON = null;
+let currentStateLayer = null;
+
+// ========================================
 // MALAYSIA INTERACTIVE MAP
 // ========================================
 
@@ -32,6 +41,7 @@ Papa.parse("data/recovery_index_f.csv", {
     complete: function(results) {
 
         const recoveryData = results.data;
+        recoveryMapData = recoveryData;
 
         console.log("Recovery data loaded!");
         console.log(recoveryData);
@@ -76,6 +86,7 @@ Papa.parse("data/recovery_index_f.csv", {
         fetch("data/malaysia-states.geojson")
             .then(response => response.json())
             .then(geojsonData => {
+                malaysiaGeoJSON = geojsonData;
 
                 const stateLayer = L.geoJSON(geojsonData, {
 
@@ -230,6 +241,7 @@ Papa.parse("data/tourism_state_panel_clean.csv", {
     complete: function(results) {
 
         const tourismData = results.data;
+        tourismMapData = tourismData;
 
         console.log("Tourism data loaded!");
         console.log(tourismData);
