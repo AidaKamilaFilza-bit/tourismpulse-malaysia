@@ -6,6 +6,7 @@ let tourismMapData = [];
 let recoveryMapData = [];
 let malaysiaGeoJSON = null;
 let currentStateLayer = null;
+let mapLegend = null;
 
 // ========================================
 // MALAYSIA INTERACTIVE MAP
@@ -88,7 +89,7 @@ Papa.parse("data/recovery_index_f.csv", {
             .then(geojsonData => {
                 malaysiaGeoJSON = geojsonData;
 
-                const stateLayer = L.geoJSON(geojsonData, {
+                currentStateLayer = L.geoJSON(geojsonData, {
 
                     style: function(feature) {
 
@@ -161,24 +162,29 @@ Papa.parse("data/recovery_index_f.csv", {
                                 }
                             );
                         }
+                        // Click state to update Destination Profile
+layer.on("click", function() {
+    console.log("State clicked:", csvStateName);
+    updateDestinationProfile(csvStateName);
+});
                     }
 
                 }).addTo(map);
 
 
                 map.fitBounds(
-                    stateLayer.getBounds()
+                    currentStateLayer.getBounds()
                 );
 
                 // --------------------------------
 // MAP LEGEND
 // --------------------------------
 
-const legend = L.control({
+mapLegend = L.control({
     position: "bottomright"
 });
 
-legend.onAdd = function() {
+mapLegend.onAdd = function() {
 
     const div = L.DomUtil.create(
         "div",
@@ -216,7 +222,7 @@ legend.onAdd = function() {
     return div;
 };
 
-legend.addTo(map);
+mapLegend.addTo(map);
                 console.log(
                     "Tourism recovery map loaded!"
                 );
@@ -254,6 +260,21 @@ Papa.parse("data/tourism_state_panel_clean.csv", {
         const data2019 = tourismData.filter(row => row.year === 2019);
         const data2023 = tourismData.filter(row => row.year === 2023);
 
+console.log(
+    "2023 Visitors:",
+    data2023.map(row => ({
+        state: row.state,
+        visitors: row.visitors_000
+    }))
+);
+
+console.log(
+    "2023 Trips:",
+    data2023.map(row => ({
+        state: row.state,
+        trips: row.trips_000
+    }))
+);
 
         // ========================================
         // 2. TOTAL TOURISM RECEIPTS 2023
@@ -320,3 +341,845 @@ Papa.parse("data/tourism_state_panel_clean.csv", {
     }
 
 });
+
+// ========================================
+// MAP DROPDOWN
+// Switch between map indicators
+// ========================================
+
+document
+    .getElementById("map-indicator")
+    .addEventListener("change", function () {
+
+        const selectedIndicator = this.value;
+
+        console.log(
+            "Map indicator selected:",
+            selectedIndicator
+        );
+
+        if (selectedIndicator === "receipts") {
+            showReceiptsMap();
+        }
+
+        if (selectedIndicator === "recovery") {
+            showRecoveryMap();
+        }
+
+        if (selectedIndicator === "visitors") {
+            showVisitorsMap();
+        }
+
+        if (selectedIndicator === "trips") {
+            showTripsMap();
+        }
+
+    });
+
+// ========================================
+// SHOW 2023 TOURISM RECEIPTS
+// ========================================
+
+function showReceiptsMap() {
+
+    // Get only 2023 tourism data
+    const data2023 = tourismMapData.filter(
+        row => row.year === 2023
+    );
+
+    console.log("2023 map data:", data2023);
+
+
+    // Remove current state layer
+    if (currentStateLayer) {
+        map.removeLayer(currentStateLayer);
+    }
+
+
+    // Match GeoJSON names with CSV names
+    const stateNameMap = {
+        "Kuala Lumpur": "WP Kuala Lumpur",
+        "Putrajaya": "WP Putrajaya",
+        "Labuan": "WP Labuan",
+        "Pulau Pinang": "Penang"
+    };
+
+
+    // Colour states based on receipts
+    function getReceiptsColor(receipts) {
+
+        if (receipts >= 10000) {
+            return "#087f5b";
+        }
+
+        if (receipts >= 5000) {
+            return "#52b788";
+        }
+
+        if (receipts >= 2500) {
+            return "#f4a261";
+        }
+
+        return "#d95d39";
+    }
+
+
+    currentStateLayer = L.geoJSON(
+        malaysiaGeoJSON,
+        {
+
+            style: function(feature) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+                const receipts =
+                    stateData
+                        ? stateData.receipts_rm_million
+                        : null;
+
+
+                return {
+
+                    color: "#ffffff",
+
+                    weight: 1.5,
+
+                    fillColor:
+                        receipts !== null
+                            ? getReceiptsColor(receipts)
+                            : "#cccccc",
+
+                    fillOpacity: 0.75
+
+                };
+
+            },
+
+
+            onEachFeature: function(feature, layer) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+
+                if (stateData) {
+
+                    const receiptsBillion =
+                        (
+                            stateData.receipts_rm_million
+                            / 1000
+                        ).toFixed(2);
+
+
+                    layer.bindTooltip(
+
+                        `<strong>${csvStateName}</strong><br>
+                         2023 Tourism Receipts:
+                         <strong>RM${receiptsBillion}B</strong>`,
+
+                        {
+                            sticky: true
+                        }
+
+                    );
+
+                }
+
+                else {
+
+                    layer.bindTooltip(
+                        `<strong>${geoStateName}</strong><br>
+                         No data`
+                    );
+
+                }
+
+            }
+
+        }
+
+    ).addTo(map);
+
+    updateMapLegend("receipts");
+
+}
+
+
+// ========================================
+// SHOW TOURISM RECOVERY
+// ========================================
+
+function showRecoveryMap() {
+
+    // Remove current state layer
+    if (currentStateLayer) {
+        map.removeLayer(currentStateLayer);
+    }
+
+    const stateNameMap = {
+        "Kuala Lumpur": "WP Kuala Lumpur",
+        "Putrajaya": "WP Putrajaya",
+        "Labuan": "WP Labuan",
+        "Pulau Pinang": "Penang"
+    };
+
+    function getRecoveryColor(recovery) {
+
+        if (recovery >= 1.00) {
+            return "#087f5b";
+        }
+
+        if (recovery >= 0.85) {
+            return "#52b788";
+        }
+
+        if (recovery >= 0.70) {
+            return "#f4a261";
+        }
+
+        return "#d95d39";
+    }
+
+    currentStateLayer = L.geoJSON(
+        malaysiaGeoJSON,
+        {
+
+            style: function(feature) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    recoveryMapData.find(
+                        row => row.state === csvStateName
+                    );
+
+                const recovery =
+                    stateData
+                        ? stateData.recovery_ratio_2023_vs_2019
+                        : null;
+
+                return {
+                    color: "#ffffff",
+                    weight: 1.5,
+
+                    fillColor:
+                        recovery !== null
+                            ? getRecoveryColor(recovery)
+                            : "#cccccc",
+
+                    fillOpacity: 0.75
+                };
+            },
+
+            onEachFeature: function(feature, layer) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    recoveryMapData.find(
+                        row => row.state === csvStateName
+                    );
+
+                if (stateData) {
+
+                    const recoveryPercent =
+                        (
+                            stateData.recovery_ratio_2023_vs_2019
+                            * 100
+                        ).toFixed(1);
+
+                    layer.bindTooltip(
+                        `<strong>${csvStateName}</strong><br>
+                        Recovery: <strong>${recoveryPercent}%</strong>`,
+                        {
+                            sticky: true
+                        }
+                    );
+
+                } else {
+
+                    layer.bindTooltip(
+                        `<strong>${geoStateName}</strong><br>
+                        No recovery data`
+                    );
+                }
+                // Click state to update Destination Profile
+layer.on("click", function() {
+    console.log("State clicked:", csvStateName);
+    updateDestinationProfile(csvStateName);
+});
+            }
+
+        }
+    ).addTo(map);
+
+    // Change legend to Recovery
+    updateMapLegend("recovery");
+}
+
+
+// ========================================
+// UPDATE MAP LEGEND
+// ========================================
+
+function updateMapLegend(type) {
+
+    // Remove existing legend
+    if (mapLegend) {
+        map.removeControl(mapLegend);
+    }
+
+    // Create new legend
+    mapLegend = L.control({
+        position: "bottomright"
+    });
+
+    mapLegend.onAdd = function() {
+
+        const div = L.DomUtil.create(
+            "div",
+            "map-legend"
+        );
+
+
+        // ========================================
+        // RECOVERY LEGEND
+        // ========================================
+
+        if (type === "recovery") {
+
+            div.innerHTML = `
+                <h4>Tourism Recovery</h4>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#087f5b"></span>
+                    <span>
+                        <strong>100%+</strong>
+                        Above 2019 level
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#52b788"></span>
+                    <span>
+                        <strong>85–99.9%</strong>
+                        Near 2019 level
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#f4a261"></span>
+                    <span>
+                        <strong>70–84.9%</strong>
+                        Still recovering
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#d95d39"></span>
+                    <span>
+                        <strong>&lt;70%</strong>
+                        Further below 2019
+                    </span>
+                </div>
+            `;
+        }
+
+
+        // ========================================
+        // RECEIPTS LEGEND
+        // ========================================
+
+        if (type === "receipts") {
+
+            div.innerHTML = `
+                <h4>2023 Tourism Receipts</h4>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#087f5b"></span>
+                    <span>
+                        <strong>RM10B+</strong>
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#52b788"></span>
+                    <span>
+                        <strong>RM5B – RM10B</strong>
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#f4a261"></span>
+                    <span>
+                        <strong>RM2.5B – RM5B</strong>
+                    </span>
+                </div>
+
+                <div>
+                    <span class="legend-color"
+                          style="background:#d95d39"></span>
+                    <span>
+                        <strong>Below RM2.5B</strong>
+                    </span>
+                </div>
+            `;
+        }
+
+    // ========================================
+// VISITORS LEGEND
+// ========================================
+
+if (type === "visitors") {
+
+    div.innerHTML = `
+        <h4>2023 Domestic Visitors</h4>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#087f5b"></span>
+            <span><strong>20M+</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#52b788"></span>
+            <span><strong>15M – 20M</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#f4a261"></span>
+            <span><strong>10M – 15M</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#d95d39"></span>
+            <span><strong>Below 10M</strong></span>
+        </div>
+    `;
+}
+
+// ========================================
+// TRIPS LEGEND
+// ========================================
+
+if (type === "trips") {
+
+    div.innerHTML = `
+        <h4>2023 Domestic Trips</h4>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#087f5b"></span>
+            <span><strong>20M+</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#52b788"></span>
+            <span><strong>15M – 20M</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#f4a261"></span>
+            <span><strong>10M – 15M</strong></span>
+        </div>
+
+        <div>
+            <span class="legend-color"
+                  style="background:#d95d39"></span>
+            <span><strong>Below 10M</strong></span>
+        </div>
+    `;
+}
+
+        return div;
+    };
+
+    mapLegend.addTo(map);
+}
+
+// ========================================
+// SHOW VISITORS MAP
+// ========================================
+
+function showVisitorsMap() {
+
+    const data2023 =
+        tourismMapData.filter(
+            row => row.year === 2023
+        );
+
+    // Remove current state layer
+    if (currentStateLayer) {
+        map.removeLayer(currentStateLayer);
+    }
+
+    const stateNameMap = {
+        "Kuala Lumpur": "WP Kuala Lumpur",
+        "Putrajaya": "WP Putrajaya",
+        "Labuan": "WP Labuan",
+
+        // IMPORTANT:
+        // Your CSV uses "Pulau Pinang"
+        "Pulau Pinang": "Pulau Pinang"
+    };
+
+
+    // Choose colour based on visitors
+    function getVisitorsColor(visitors) {
+
+        if (visitors >= 20000) {
+            return "#087f5b";
+        }
+
+        if (visitors >= 15000) {
+            return "#52b788";
+        }
+
+        if (visitors >= 10000) {
+            return "#f4a261";
+        }
+
+        return "#d95d39";
+    }
+
+
+    currentStateLayer = L.geoJSON(
+        malaysiaGeoJSON,
+        {
+
+            style: function(feature) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+                const visitors =
+                    stateData
+                        ? stateData.visitors_000
+                        : null;
+
+                return {
+                    color: "#ffffff",
+                    weight: 1.5,
+
+                    fillColor:
+                        visitors !== null
+                            ? getVisitorsColor(visitors)
+                            : "#cccccc",
+
+                    fillOpacity: 0.75
+                };
+            },
+
+
+            onEachFeature: function(feature, layer) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+                if (stateData) {
+
+                    // visitors_000 means values are in thousands
+                    const visitorsMillion =
+                        (
+                            stateData.visitors_000 / 1000
+                        ).toFixed(1);
+
+                    layer.bindTooltip(
+                        `<strong>${csvStateName}</strong><br>
+                        2023 Visitors:
+                        <strong>${visitorsMillion}M</strong>`,
+                        {
+                            sticky: true
+                        }
+                    );
+
+                } else {
+
+                    layer.bindTooltip(
+                        `<strong>${geoStateName}</strong><br>
+                        No visitor data`
+                    );
+                }
+            }
+
+        }
+    ).addTo(map);
+
+
+    // Change legend
+    updateMapLegend("visitors");
+}
+
+// ========================================
+// SHOW TRIPS MAP
+// ========================================
+
+function showTripsMap() {
+
+    const data2023 =
+        tourismMapData.filter(
+            row => row.year === 2023
+        );
+
+    // Remove current state layer
+    if (currentStateLayer) {
+        map.removeLayer(currentStateLayer);
+    }
+
+    const stateNameMap = {
+        "Kuala Lumpur": "WP Kuala Lumpur",
+        "Putrajaya": "WP Putrajaya",
+        "Labuan": "WP Labuan",
+        "Pulau Pinang": "Pulau Pinang"
+    };
+
+
+    // Choose colour based on trips
+    function getTripsColor(trips) {
+
+        if (trips >= 20000) {
+            return "#087f5b";
+        }
+
+        if (trips >= 15000) {
+            return "#52b788";
+        }
+
+        if (trips >= 10000) {
+            return "#f4a261";
+        }
+
+        return "#d95d39";
+    }
+
+
+    currentStateLayer = L.geoJSON(
+        malaysiaGeoJSON,
+        {
+
+            style: function(feature) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+                const trips =
+                    stateData
+                        ? stateData.trips_000
+                        : null;
+
+                return {
+                    color: "#ffffff",
+                    weight: 1.5,
+
+                    fillColor:
+                        trips !== null
+                            ? getTripsColor(trips)
+                            : "#cccccc",
+
+                    fillOpacity: 0.75
+                };
+            },
+
+
+            onEachFeature: function(feature, layer) {
+
+                const geoStateName =
+                    feature.properties.shapeName;
+
+                const csvStateName =
+                    stateNameMap[geoStateName] ||
+                    geoStateName;
+
+                const stateData =
+                    data2023.find(
+                        row => row.state === csvStateName
+                    );
+
+                if (stateData) {
+
+                    const tripsMillion =
+                        (
+                            stateData.trips_000 / 1000
+                        ).toFixed(1);
+
+                    layer.bindTooltip(
+                        `<strong>${csvStateName}</strong><br>
+                        2023 Trips:
+                        <strong>${tripsMillion}M</strong>`,
+                        {
+                            sticky: true
+                        }
+                    );
+
+                } else {
+
+                    layer.bindTooltip(
+                        `<strong>${geoStateName}</strong><br>
+                        No trips data`
+                    );
+                }
+            }
+
+        }
+    ).addTo(map);
+
+
+    // Change legend
+    updateMapLegend("trips");
+}
+
+// ========================================
+// UPDATE DESTINATION PROFILE
+// ========================================
+
+function updateDestinationProfile(stateName) {
+
+    // Get 2023 tourism data for selected state
+    const state2023 = tourismMapData.find(
+        row =>
+            row.state === stateName &&
+            row.year === 2023
+    );
+
+    // Get recovery data for selected state
+    const recoveryData = recoveryMapData.find(
+        row => row.state === stateName
+    );
+
+    if (!state2023) {
+        console.log("No profile data found for:", stateName);
+        return;
+    }
+
+
+    // ========================================
+    // FORMAT VALUES
+    // ========================================
+
+    const receipts =
+        (state2023.receipts_rm_million / 1000)
+            .toFixed(2);
+
+    const visitors =
+        (state2023.visitors_000 / 1000)
+            .toFixed(1);
+
+    const trips =
+        (state2023.trips_000 / 1000)
+            .toFixed(1);
+
+    const recovery =
+        recoveryData
+            ? (
+                recoveryData.recovery_ratio_2023_vs_2019
+                * 100
+              ).toFixed(1)
+            : null;
+
+    const stay =
+        state2023.avg_length_of_stay;
+
+
+    // ========================================
+    // UPDATE HTML
+    // ========================================
+
+    document.getElementById("profile-state")
+        .textContent = stateName;
+
+    document.getElementById("profile-description")
+        .textContent =
+        `2023 tourism performance for ${stateName}.`;
+
+    document.getElementById("profile-receipts")
+        .textContent =
+        `RM${receipts}B`;
+
+    document.getElementById("profile-visitors")
+        .textContent =
+        `${visitors}M`;
+
+    document.getElementById("profile-trips")
+        .textContent =
+        `${trips}M`;
+
+    document.getElementById("profile-recovery")
+        .textContent =
+        recovery !== null
+            ? `${recovery}%`
+            : "No data";
+
+    document.getElementById("profile-stay")
+        .textContent =
+        stay
+            ? `${Number(stay).toFixed(1)} days`
+            : "No data";
+}

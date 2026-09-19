@@ -554,3 +554,89 @@ footer p {
     border-radius: 3px;
     flex-shrink: 0;
 }
+\
+/* ========================================
+   DESTINATION PROFILE
+======================================== */
+
+.destination-profile {
+    background: #ffffff;
+    color: #17252a;
+    padding: 40px;
+    margin-top: 30px;
+    border-radius: 18px;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.profile-label {
+    color: #087f5b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.profile-header h2 {
+    font-size: 32px;
+    color: #102f2a;
+    margin: 0 0 8px;
+}
+
+.profile-header #profile-description {
+    color: #667773;
+    font-size: 14px;
+    margin: 0;
+}
+
+.profile-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+}
+
+.profile-card {
+    background: #f4f8f6;
+    border: 1px solid #e0ebe6;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.profile-card span {
+    display: block;
+    color: #667773;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.profile-card strong {
+    display: block;
+    color: #102f2a;
+    font-size: 22px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+
+    .profile-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 550px) {
+
+    .destination-profile {
+        padding: 25px;
+    }
+
+    .profile-kpis {
+        grid-template-columns: 1fr;
+    }
+
+}
