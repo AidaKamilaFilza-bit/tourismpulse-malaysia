@@ -7,6 +7,8 @@ let recoveryMapData = [];
 let malaysiaGeoJSON = null;
 let currentStateLayer = null;
 let mapLegend = null;
+let forecastData = [];
+let forecastChart = null;
 
 // ========================================
 // MALAYSIA INTERACTIVE MAP
@@ -250,7 +252,7 @@ Papa.parse("data/tourism_state_panel_clean.csv", {
         tourismMapData = tourismData;
 
         updateTourismStoryChart();
-        
+
         console.log("Tourism data loaded!");
         console.log(tourismData);
 
@@ -1577,6 +1579,672 @@ function updateTourismStoryChart() {
                     title: {
                         display: true,
                         text: "Year"
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* =================================
+   SMART DESTINATION RECOMMENDER
+================================= */
+
+const recommendButton = document.getElementById("recommend-button");
+
+recommendButton.addEventListener("click", function () {
+
+    const recoveryPreference =
+        document.getElementById("recovery-preference").value;
+
+    const visitorPreference =
+        document.getElementById("visitor-preference").value;
+
+    const stayPreference =
+        document.getElementById("stay-preference").value;
+
+
+    // Use latest tourism data only
+    const data2023 = tourismMapData.filter(
+        row => Number(row.year) === 2023
+    );
+
+
+    // Find minimum and maximum values
+    const visitors = data2023.map(row =>
+        Number(row.visitors_000)
+    );
+
+    const stays = data2023.map(row =>
+        Number(row.avg_length_of_stay)
+    );
+
+
+    const minVisitors = Math.min(...visitors);
+    const maxVisitors = Math.max(...visitors);
+
+    const minStay = Math.min(...stays);
+    const maxStay = Math.max(...stays);
+
+
+    // Calculate score for every destination
+    const recommendations = data2023.map(destination => {
+
+        let score = 0;
+        let reasons = [];
+
+        const state = destination.state;
+
+
+    // Find recovery data for this destination
+const recoveryData = recoveryMapData.find(row =>
+    row.state === state
+);
+
+const recoveryValue = recoveryData
+    ? Number(recoveryData.recovery_ratio_2023_vs_2019)
+    : null;
+
+        const visitorValue =
+            Number(destination.visitors_000);
+
+        const stayValue =
+            Number(destination.avg_length_of_stay);
+
+
+        // -------------------------
+        // POPULARITY SCORE
+        // -------------------------
+
+        const visitorScore =
+            (visitorValue - minVisitors) /
+            (maxVisitors - minVisitors);
+
+        if (visitorPreference === "high") {
+
+            score += visitorScore * 35;
+
+            if (visitorScore >= 0.65) {
+                reasons.push("high visitor activity");
+            }
+
+        } else if (visitorPreference === "medium") {
+
+            score +=
+                (1 - Math.abs(visitorScore - 0.5) * 2) * 35;
+
+            if (
+                visitorScore >= 0.35 &&
+                visitorScore <= 0.65
+            ) {
+                reasons.push("moderate visitor activity");
+            }
+
+        } else if (visitorPreference === "low") {
+
+            score += (1 - visitorScore) * 35;
+
+            if (visitorScore <= 0.35) {
+                reasons.push("lower visitor activity");
+            }
+        }
+
+
+        // -------------------------
+        // LENGTH OF STAY SCORE
+        // -------------------------
+
+        const stayScore =
+            (stayValue - minStay) /
+            (maxStay - minStay);
+
+        if (stayPreference === "long") {
+
+            score += stayScore * 30;
+
+            if (stayScore >= 0.6) {
+                reasons.push("longer average stays");
+            }
+
+        } else if (stayPreference === "short") {
+
+            score += (1 - stayScore) * 30;
+
+            if (stayScore <= 0.4) {
+                reasons.push("shorter average stays");
+            }
+        }
+// -------------------------
+// RECOVERY SCORE
+// -------------------------
+
+if (recoveryValue !== null) {
+
+    if (recoveryPreference === "high") {
+
+        // Higher recovery = better match
+        score += Math.min(recoveryValue, 1.2) / 1.2 * 35;
+
+        if (recoveryValue >= 0.9) {
+            reasons.push("strong tourism recovery");
+        }
+
+    } else if (recoveryPreference === "medium") {
+
+        // Best match around 75% recovery
+        const recoveryScore =
+            1 - Math.min(
+                Math.abs(recoveryValue - 0.75) / 0.35,
+                1
+            );
+
+        score += recoveryScore * 35;
+
+        if (
+            recoveryValue >= 0.65 &&
+            recoveryValue < 0.9
+        ) {
+            reasons.push("moderate tourism recovery");
+        }
+    }
+}
+
+      const activeWeights =
+    (visitorPreference !== "any" ? 35 : 0) +
+    (stayPreference !== "any" ? 30 : 0) +
+    (recoveryPreference !== "any" ? 35 : 0);
+
+const matchPercentage =
+    activeWeights > 0
+        ? Math.min(100, (score / activeWeights) * 100)
+        : 100;
+
+return {
+    state: state,
+    score: score,
+    match: matchPercentage,
+    visitors: visitorValue,
+    stay: stayValue,
+    recovery: recoveryValue,
+    reasons: reasons
+};
+
+    });
+
+
+    // Rank destinations
+    recommendations.sort(
+        (a, b) => b.score - a.score
+    );
+
+
+    // Top 3
+    const topThree = recommendations.slice(0, 3);
+
+
+    displayRecommendations(topThree);
+
+});
+
+function displayRecommendations(destinations) {
+
+    const container =
+        document.getElementById("recommend-results");
+
+    container.innerHTML = `
+        <div class="recommend-list">
+
+            <div class="recommend-result-heading">
+                <p class="section-label">
+                    YOUR TOP MATCHES
+                </p>
+
+                <h3>
+                    Recommended destinations
+                </h3>
+            </div>
+
+            ${destinations.map((destination, index) => `
+
+                <div class="destination-match">
+
+                    <div class="match-rank">
+                        ${index + 1}
+                    </div>
+
+                    <div class="match-info">
+
+                        <h4>${destination.state}</h4>
+
+                        <p>
+                            ${
+                                destination.reasons.length > 0
+                                ? "Matches your preference for " +
+                                  destination.reasons.join(" and ") + "."
+                                : "Matches your selected tourism preferences."
+                            }
+                        </p>
+
+        <div class="match-stats">
+
+    <span>
+        Match
+        <strong>
+            ${destination.match.toFixed(0)}%
+        </strong>
+    </span>
+
+    <span>
+        Recovery
+        <strong>
+            ${
+                destination.recovery !== null
+                    ? (destination.recovery * 100).toFixed(1) + "%"
+                    : "No data"
+            }
+        </strong>
+    </span>
+
+    <span>
+        Visitors
+        <strong>
+            ${(destination.visitors / 1000).toFixed(1)}M
+        </strong>
+    </span>
+
+    <span>
+        Average Stay
+        <strong>
+            ${destination.stay.toFixed(1)} nights
+        </strong>
+    </span>
+
+</div>
+
+                    </div>
+
+                </div>
+
+            `).join("")}
+
+        </div>
+    `;
+}
+
+/* =================================
+   TOURISM FORECAST
+================================= */
+
+Papa.parse("data/receipt_forecasts_f.csv", {
+    download: true,
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+
+    complete: function(results) {
+
+        forecastData = results.data;
+
+        console.log("Forecast data loaded!", forecastData);
+
+        populateForecastDropdown();
+    },
+
+    error: function(error) {
+        console.error("Error loading forecast data:", error);
+    }
+});
+
+
+function populateForecastDropdown() {
+
+    const dropdown =
+        document.getElementById("forecast-state");
+
+    // Get unique states
+    const states = [
+        ...new Set(
+            forecastData.map(row => row.state)
+        )
+    ].sort();
+
+    states.forEach(state => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = state;
+        option.textContent = state;
+
+        dropdown.appendChild(option);
+
+    });
+}
+
+document
+    .getElementById("forecast-state")
+    .addEventListener("change", function () {
+
+        const selectedState = this.value;
+
+        if (!selectedState) {
+            return;
+        }
+
+        createForecastChart(selectedState);
+    });
+
+    function createForecastChart(state) {
+
+    // =========================
+    // HISTORICAL DATA 2017-2023
+    // =========================
+
+    const historicalData = tourismMapData
+        .filter(row =>
+            row.state === state &&
+            Number(row.year) >= 2017 &&
+            Number(row.year) <= 2023
+        )
+        .sort((a, b) =>
+            Number(a.year) - Number(b.year)
+        );
+
+
+    // =========================
+    // FORECAST DATA 2024-2026
+    // =========================
+
+    const stateForecast = forecastData
+        .filter(row =>
+            row.state === state
+        )
+        .sort((a, b) =>
+            Number(a.year) - Number(b.year)
+        );
+
+// =========================
+// UPDATE FORECAST KPI CARDS
+// =========================
+
+const forecast2024 = stateForecast.find(
+    row => Number(row.year) === 2024
+);
+
+const forecast2025 = stateForecast.find(
+    row => Number(row.year) === 2025
+);
+
+const forecast2026 = stateForecast.find(
+    row => Number(row.year) === 2026
+);
+
+
+// Display forecast values
+document.getElementById("forecast-2024").textContent =
+    forecast2024
+        ? "RM " +
+          (Number(forecast2024.forecast_receipts_rm_million) / 1000)
+              .toFixed(2) +
+          "B"
+        : "—";
+
+document.getElementById("forecast-2025").textContent =
+    forecast2025
+        ? "RM " +
+          (Number(forecast2025.forecast_receipts_rm_million) / 1000)
+              .toFixed(2) +
+          "B"
+        : "—";
+
+document.getElementById("forecast-2026").textContent =
+    forecast2026
+        ? "RM " +
+          (Number(forecast2026.forecast_receipts_rm_million) / 1000)
+              .toFixed(2) +
+          "B"
+        : "—";
+
+
+// Calculate projected growth from 2024 to 2026
+if (forecast2024 && forecast2026) {
+
+    const value2024 =
+        Number(forecast2024.forecast_receipts_rm_million);
+
+    const value2026 =
+        Number(forecast2026.forecast_receipts_rm_million);
+
+    const growth =
+        ((value2026 - value2024) / value2024) * 100;
+
+    document.getElementById("forecast-growth").textContent =
+        (growth >= 0 ? "+" : "") +
+        growth.toFixed(1) +
+        "%";
+
+} else {
+
+    document.getElementById("forecast-growth").textContent =
+        "—";
+}
+    // =========================
+    // YEARS
+    // =========================
+
+    const years = [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+    ];
+
+
+    // =========================
+    // ACTUAL VALUES
+    // =========================
+
+    const actualValues = years.map(year => {
+
+        const row = historicalData.find(
+            item => Number(item.year) === year
+        );
+
+        return row
+            ? Number(row.receipts_rm_million)
+            : null;
+    });
+
+
+    // =========================
+    // FORECAST VALUES
+    // =========================
+
+    const forecastValues = years.map(year => {
+
+        // Start forecast line from 2023
+        if (year === 2023) {
+
+            const row2023 = historicalData.find(
+                item => Number(item.year) === 2023
+            );
+
+            return row2023
+                ? Number(row2023.receipts_rm_million)
+                : null;
+        }
+
+        const row = stateForecast.find(
+            item => Number(item.year) === year
+        );
+
+        return row
+            ? Number(row.forecast_receipts_rm_million)
+            : null;
+    });
+
+
+    // =========================
+    // UPDATE TITLE
+    // =========================
+
+    document.getElementById("forecast-title").textContent =
+        `${state} Tourism Receipts: Actual vs Forecast`;
+
+
+    // =========================
+    // REMOVE OLD CHART
+    // =========================
+
+    if (forecastChart) {
+        forecastChart.destroy();
+    }
+
+
+    // =========================
+    // CREATE CHART
+    // =========================
+
+    const ctx =
+        document.getElementById("forecast-chart");
+
+    forecastChart = new Chart(ctx, {
+
+        type: "line",
+
+        data: {
+
+            labels: years,
+
+            datasets: [
+
+                {
+                    label: "Actual 2017–2023",
+
+                    data: actualValues,
+
+                    borderColor: "#087f5b",
+
+                    backgroundColor:
+                        "rgba(8, 127, 91, 0.10)",
+
+                    borderWidth: 3,
+
+                    pointRadius: 4,
+
+                    pointBackgroundColor: "#087f5b",
+
+                    tension: 0.3,
+
+                    spanGaps: false
+                },
+
+                {
+                    label: "Forecast 2024–2026",
+
+                    data: forecastValues,
+
+                    borderColor: "#d99b2b",
+
+                    backgroundColor:
+                        "rgba(217, 155, 43, 0.10)",
+
+                    borderWidth: 3,
+
+                    borderDash: [7, 5],
+
+                    pointRadius: 4,
+
+                    pointBackgroundColor: "#d99b2b",
+
+                    tension: 0.3,
+
+                    spanGaps: false
+                }
+
+            ]
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+
+            plugins: {
+
+                legend: {
+                    position: "top",
+                    align: "end"
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            if (context.raw === null) {
+                                return "";
+                            }
+
+                            return (
+                                context.dataset.label +
+                                ": RM " +
+                                Number(context.raw)
+                                    .toLocaleString(
+                                        "en-MY",
+                                        {
+                                            maximumFractionDigits: 1
+                                        }
+                                    ) +
+                                " million"
+                            );
+                        }
+                    }
+                }
+            },
+
+            scales: {
+
+                x: {
+
+                    title: {
+                        display: true,
+                        text: "Year"
+                    },
+
+                    grid: {
+                        display: false
+                    }
+                },
+
+                y: {
+
+                    title: {
+                        display: true,
+                        text: "Tourism Receipts (RM million)"
+                    },
+
+                    ticks: {
+
+                        callback: function(value) {
+
+                            return "RM " +
+                                Number(value)
+                                    .toLocaleString("en-MY");
+                        }
                     }
                 }
             }

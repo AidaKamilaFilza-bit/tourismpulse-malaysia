@@ -33,6 +33,8 @@
             <a href="#explore">Explore Malaysia</a>
             <a href="#prices">Local Prices</a>
             <a href="#compare">Compare</a>
+            <a href="#recommend">Smart Recommender</a>
+            <a href="#forecast">Forecast</a>
             <a href="#story">Tourism Story</a>
             <a href="#about">About</a>
         </div>
@@ -135,65 +137,125 @@
 
 
     <!-- WHY TOURISMPULSE -->
-    <section class="why-section">
+ <!-- WHY TOURISMPULSE -->
+<section class="why-section">
 
-        <div class="why-heading">
+    <div class="why-heading">
 
-            <p class="section-label">WHY TOURISMPULSE?</p>
+        <p class="section-label">WHY TOURISMPULSE?</p>
 
-            <h2>
-                Tourism is more than visitor numbers.
-            </h2>
+        <h2>
+            Tourism is more than visitor numbers.
+        </h2>
 
-            <p>
-                Sustainable tourism requires us to understand not only
-                tourism growth, but also destination recovery and conditions
-                experienced by local communities.
-            </p>
+        <p>
+            Sustainable tourism requires us to look beyond visitor numbers —
+            from economic performance and destination recovery to local
+            affordability, traveller preferences and future tourism trends.
+        </p>
 
-        </div>
-
-
-        <div class="pillar-grid">
-
-            <div class="pillar-card">
-                <div class="pillar-number">01</div>
-
-                <h3>Tourism Economy</h3>
-
-                <p>
-                    Explore tourism receipts, visitors, trips and destination
-                    performance across Malaysia.
-                </p>
-            </div>
+    </div>
 
 
-            <div class="pillar-card">
-                <div class="pillar-number">02</div>
+    <div class="pillar-grid">
 
-                <h3>Destination Recovery</h3>
+      <!-- 01 -->
+<a href="#explore" class="pillar-card pillar-link">
 
-                <p>
-                    Understand how different states have recovered compared
-                    with their pre-pandemic tourism performance.
-                </p>
-            </div>
+    <div class="pillar-number">01</div>
+
+    <h3>Tourism Economy</h3>
+
+    <p>
+        Explore tourism receipts, visitors, trips and destination
+        performance across Malaysia.
+    </p>
+
+    <span class="pillar-explore">
+        Explore Tourism Data →
+    </span>
+
+</a>
 
 
-            <div class="pillar-card">
-                <div class="pillar-number">03</div>
+<!-- 02 -->
+<a href="#explore" class="pillar-card pillar-link">
 
-                <h3>Local Affordability</h3>
+    <div class="pillar-number">02</div>
 
-                <p>
-                    Compare selected everyday prices in tourist destinations
-                    with matched comparison areas.
-                </p>
-            </div>
+    <h3>Destination Recovery</h3>
 
-        </div>
+    <p>
+        Understand how Malaysian destinations have recovered
+        compared with pre-pandemic tourism performance.
+    </p>
 
-    </section>
+    <span class="pillar-explore">
+        Explore Recovery →
+    </span>
+
+</a>
+
+
+<!-- 03 -->
+<a href="#prices" class="pillar-card pillar-link">
+
+    <div class="pillar-number">03</div>
+
+    <h3>Local Affordability</h3>
+
+    <p>
+        Compare selected everyday prices in tourist destinations
+        with matched comparison areas.
+    </p>
+
+    <span class="pillar-explore">
+        Explore Local Prices →
+    </span>
+
+</a>
+
+
+        <!-- 04 -->
+      <a href="#recommend" class="pillar-card pillar-link">
+
+    <div class="pillar-number">04</div>
+
+    <h3>Smart Destination Recommender</h3>
+
+    <p>
+        Discover destinations that match selected preferences using
+        tourism recovery, visitor activity and average length of stay.
+    </p>
+
+    <span class="pillar-explore">
+        Explore Recommender →
+    </span>
+
+</a>
+
+
+        <!-- 05 -->
+        <a href="#forecast" class="pillar-card pillar-link">
+
+    <div class="pillar-number">05</div>
+
+    <h3>Tourism Forecast</h3>
+
+    <p>
+        Explore indicative tourism receipt projections for
+        2024–2026 based on historical tourism patterns.
+    </p>
+
+    <span class="pillar-explore">
+        Explore Forecast →
+    </span>
+
+</a>
+
+    </div>
+
+</section>
 
 
     <!-- EXPLORE PREVIEW -->
@@ -550,6 +612,199 @@
 
 </section>
 
+<!-- SMART DESTINATION RECOMMENDER -->
+<section id="recommend" class="recommend-section">
+
+    <div class="recommend-header">
+        <p class="section-label">SMART DESTINATION RECOMMENDER</p>
+
+        <h2>Find a destination that matches you.</h2>
+
+        <p>
+            Select what matters most to you and TourismPulse will
+            recommend Malaysian destinations based on tourism
+            performance and destination characteristics.
+        </p>
+    </div>
+
+    <div class="recommend-panel">
+
+        <div class="recommend-form">
+
+            <div class="recommend-field">
+                <label for="recovery-preference">
+                    Tourism Recovery
+                </label>
+
+                <select id="recovery-preference">
+                    <option value="high">Strong recovery</option>
+                    <option value="medium">Moderate recovery</option>
+                    <option value="any">No preference</option>
+                </select>
+            </div>
+
+            <div class="recommend-field">
+                <label for="visitor-preference">
+                    Destination Popularity
+                </label>
+
+                <select id="visitor-preference">
+                    <option value="high">Popular & busy</option>
+                    <option value="medium">Moderately popular</option>
+                    <option value="low">Quieter destination</option>
+                    <option value="any">No preference</option>
+                </select>
+            </div>
+
+            <div class="recommend-field">
+                <label for="stay-preference">
+                    Length of Stay
+                </label>
+
+                <select id="stay-preference">
+                    <option value="long">Longer stays</option>
+                    <option value="short">Shorter stays</option>
+                    <option value="any">No preference</option>
+                </select>
+            </div>
+
+            <button id="recommend-button" class="recommend-button">
+                Find My Destination
+            </button>
+
+        </div>
+
+        <div id="recommend-results" class="recommend-results">
+
+            <div class="recommend-placeholder">
+                <span>✦</span>
+
+                <h3>Your recommendations will appear here.</h3>
+
+                <p>
+                    Choose your preferences and let TourismPulse
+                    find destinations that match them.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- TOURISM FORECAST -->
+<section id="forecast" class="forecast-section">
+
+    <div class="forecast-header">
+        <p class="section-label">ML TOURISM FORECAST</p>
+
+        <h2>Where could tourism be heading?</h2>
+
+        <p>
+            Explore projected tourism receipts for Malaysian destinations
+            using historical tourism patterns and time-series forecasting.
+        </p>
+    </div>
+
+    <div class="forecast-container">
+
+        <div class="forecast-controls">
+            <label for="forecast-state">
+                Select Destination
+            </label>
+
+            <select id="forecast-state">
+                <option value="">
+                    Choose a destination
+                </option>
+            </select>
+
+            <div id="forecast-kpis" class="forecast-kpis">
+
+    <div class="forecast-kpi">
+        <span>2024 Forecast</span>
+        <strong id="forecast-2024">—</strong>
+    </div>
+
+    <div class="forecast-kpi">
+        <span>2025 Forecast</span>
+        <strong id="forecast-2025">—</strong>
+    </div>
+
+    <div class="forecast-kpi">
+        <span>2026 Forecast</span>
+        <strong id="forecast-2026">—</strong>
+    </div>
+
+    <div class="forecast-kpi highlight">
+        <span>2024 → 2026 Growth</span>
+        <strong id="forecast-growth">—</strong>
+    </div>
+
+</div>
+            <div class="forecast-note">
+
+    <strong>How this forecast works</strong>
+
+    <p>
+        TourismPulse uses historical state-level tourism receipts
+        from 2017–2023 to generate indicative projections for
+        2024–2026.
+    </p>
+   
+
+    <div class="forecast-method">
+
+        <span>
+            <b>Historical Data</b>
+            2017–2023
+        </span>
+
+        <span class="method-arrow">→</span>
+
+        <span>
+            <b>Time-Series Forecast</b>
+            Trend modelling
+        </span>
+
+        <span class="method-arrow">→</span>
+
+        <span>
+            <b>Projection</b>
+            2024–2026
+        </span>
+
+    </div>
+
+    <small>
+        Forecasts are indicative projections and should not be
+        interpreted as guaranteed future outcomes.
+    </small>
+
+</div>
+        </div>
+
+        <div class="forecast-visual">
+
+            <div class="forecast-chart-header">
+                <div>
+                    <p class="section-label">TOURISM RECEIPTS</p>
+                    <h3 id="forecast-title">
+                        Select a destination
+                    </h3>
+                </div>
+            </div>
+
+            <div class="forecast-chart">
+                <canvas id="forecast-chart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
     <!-- ========================================
      TOURISM STORY
