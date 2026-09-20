@@ -1,0 +1,46 @@
+month,staple_group,tourist_avg_price,control_avg_price,gap_pct,tourist_town,control_town,state
+2025-02,chicken,9.961779279279279,10.492946058091286,-5.06213198725458,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-02,cooking_oil,18.413951219512196,19.476616541353383,-5.456108454899762,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-02,rice,25.11207142857143,29.363865030674848,-14.479679693602321,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-02,vegetables,4.76234693877551,5.3735606060606065,-11.374463081252593,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-06,chicken,10.090594660194174,10.389324240545568,-2.875351403371991,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-06,cooking_oil,19.80677551020408,18.867983651226158,4.975581261524536,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-06,rice,25.5112109375,27.705326315789474,-7.919471343815328,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-06,vegetables,5.027592592592593,5.004786324786325,0.4556891408793886,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2026-09,chicken,11.399718309859155,11.79243006993007,-3.330202152924395,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2026-09,cooking_oil,20.344240506329115,19.434421052631578,4.681484728737726,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2026-09,rice,27.256285714285713,27.694622641509437,-1.582751037621044,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2026-09,vegetables,4.918888888888889,4.658965517241379,5.578993248299744,Langkawi,Kubang Pasu (mainland Kedah),Kedah
+2025-02,chicken,10.250693641618497,9.958579853739089,2.93328759893139,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-02,cooking_oil,18.113790760869566,18.955114942528738,-4.438507411904585,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-02,rice,27.729279538904898,30.12583922261484,-7.955163227157152,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-02,vegetables,5.328710317460318,4.509739884393064,18.16003703232372,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-06,chicken,9.962353293413173,9.614569377990431,3.6172594086104883,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-06,cooking_oil,18.25781755196305,18.86407476635514,-3.213818975491848,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-06,rice,26.263258110014107,28.43,-7.621322159640847,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-06,vegetables,4.9652469135802475,4.228459383753501,17.424491119806337,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2026-09,chicken,12.086785524215008,11.382010703363914,6.1920063090680495,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2026-09,cooking_oil,17.86008316008316,18.738924889543444,-4.689926101100327,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2026-09,rice,30.315263157894734,28.320728476821195,7.0426672912243236,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2026-09,vegetables,5.056269430051813,4.186772908366534,20.767702015739662,George Town,Seberang Perai Tengah (mainland Penang),Penang
+2025-02,chicken,12.491022099447514,13.025731132075471,-4.105021262961983,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-02,cooking_oil,20.883809523809525,17.092499999999998,22.18112928951018,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-02,rice,26.28404255319149,26.145864661654137,0.5284885136730878,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-06,chicken,12.270617891177375,13.035038560411312,-5.864352956772659,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-06,cooking_oil,20.02776771004942,19.791004366812228,1.1963179778496964,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-06,rice,26.05125,26.122999999999998,-0.2746621750947364,Kuching,Sri Aman (inland Sarawak),Sarawak
+2026-09,chicken,13.196716068642745,12.06735294117647,9.358830664616093,Kuching,Sri Aman (inland Sarawak),Sarawak
+2026-09,cooking_oil,23.467956403269753,23.516000000000002,-0.20430173809427216,Kuching,Sri Aman (inland Sarawak),Sarawak
+2026-09,rice,26.72159574468085,27.277272727272727,-2.0371427457125946,Kuching,Sri Aman (inland Sarawak),Sarawak
+2025-02,chicken,10.995906642728905,10.518459495351925,4.539135674648575,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-02,cooking_oil,16.056816720257235,20.07659574468085,-20.022214301389358,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-02,rice,26.847745762711863,26.250977443609024,2.273318471225636,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-02,vegetables,7.538069620253165,7.857191011235955,-4.061520084295249,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-06,chicken,10.429650943396227,10.06576874205845,3.6150463085580786,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-06,cooking_oil,18.422406576980567,20.60832116788321,-10.606951304258867,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-06,rice,25.94925581395349,25.800037453183524,0.5783648998213065,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2025-06,vegetables,7.021107491856678,6.56,7.029077619766437,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2026-09,chicken,11.821751621872103,12.061343283582088,-1.986442604913814,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2026-09,cooking_oil,18.136708542713567,18.687878787878788,-2.949346212169982,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2026-09,rice,29.284716981132075,29.97733333333333,-2.310466860076244,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu
+2026-09,vegetables,6.673913043478261,6.838481012658228,-2.406498882944139,Kuala Terengganu,"Hulu Terengganu (inland, non-coastal)",Terengganu

@@ -55,7 +55,7 @@ Papa.parse("data/recovery_index_f.csv", {
             "Kuala Lumpur": "WP Kuala Lumpur",
             "Putrajaya": "WP Putrajaya",
             "Labuan": "WP Labuan",
-            "Pulau Pinang": "Penang"
+            "Penang": "Pulau Pinang"
         };
 
         // --------------------------------
@@ -249,6 +249,8 @@ Papa.parse("data/tourism_state_panel_clean.csv", {
         const tourismData = results.data;
         tourismMapData = tourismData;
 
+        updateTourismStoryChart();
+        
         console.log("Tourism data loaded!");
         console.log(tourismData);
 
@@ -401,7 +403,7 @@ function showReceiptsMap() {
         "Kuala Lumpur": "WP Kuala Lumpur",
         "Putrajaya": "WP Putrajaya",
         "Labuan": "WP Labuan",
-        "Pulau Pinang": "Penang"
+        "Penang": "Pulau Pinang"
     };
 
 
@@ -512,7 +514,10 @@ function showReceiptsMap() {
                     );
 
                 }
-
+// Click state to update Destination Profile
+layer.on("click", function() {
+    updateDestinationProfile(csvStateName);
+});
             }
 
         }
@@ -861,7 +866,7 @@ function showVisitorsMap() {
 
         // IMPORTANT:
         // Your CSV uses "Pulau Pinang"
-        "Pulau Pinang": "Pulau Pinang"
+        "Penang": "Pulau Pinang"
     };
 
 
@@ -892,6 +897,7 @@ function showVisitorsMap() {
 
                 const geoStateName =
                     feature.properties.shapeName;
+                    console.log("GeoJSON state:", geoStateName);
 
                 const csvStateName =
                     stateNameMap[geoStateName] ||
@@ -959,7 +965,12 @@ function showVisitorsMap() {
                         No visitor data`
                     );
                 }
+                // Click state to update Destination Profile
+layer.on("click", function() {
+    updateDestinationProfile(csvStateName);
+});
             }
+
 
         }
     ).addTo(map);
@@ -1086,6 +1097,10 @@ function showTripsMap() {
                         No trips data`
                     );
                 }
+                // Click state to update Destination Profile
+layer.on("click", function() {
+    updateDestinationProfile(csvStateName);
+});
             }
 
         }
@@ -1102,17 +1117,30 @@ function showTripsMap() {
 
 function updateDestinationProfile(stateName) {
 
+     const tourismStateName =
+        stateName === "Penang" ? "Pulau Pinang" : stateName;
+
+    const recoveryStateName =
+        stateName === "Penang" ? "Pulau Pinang" : stateName;
     // Get 2023 tourism data for selected state
+  
     const state2023 = tourismMapData.find(
         row =>
-            row.state === stateName &&
+            row.state === tourismStateName &&
             row.year === 2023
     );
 
     // Get recovery data for selected state
     const recoveryData = recoveryMapData.find(
-        row => row.state === stateName
+        row => row.state === recoveryStateName
     );
+
+    console.log("Clicked state:", stateName);
+    console.log("Recovery state searched:", recoveryStateName);
+    console.log(
+    "Recovery CSV states:",
+    recoveryMapData.map(row => row.state)
+);
 
     if (!state2023) {
         console.log("No profile data found for:", stateName);
@@ -1182,4 +1210,376 @@ function updateDestinationProfile(stateName) {
         stay
             ? `${Number(stay).toFixed(1)} days`
             : "No data";
+}
+
+// ========================================
+// LOCAL PRICE EXPLORER
+// ========================================
+
+let fairPriceData = [];
+let priceGapChart = null;
+
+Papa.parse("data/fairprice_matched_pairs_f.csv", {
+    download: true,
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+
+   complete: function(results) {
+    fairPriceData = results.data;
+
+    console.log("FairPrice data loaded!", fairPriceData);
+
+    updatePriceExplorer();
+}
+});
+
+function updatePriceExplorer() {
+
+    const destination = document.getElementById("price-destination").value;
+    const staple = document.getElementById("price-staple").value;
+
+    // Filter by selected tourism area
+    let filteredData = fairPriceData.filter(row =>
+        row.tourist_town === destination
+    );
+
+    // Filter by staple if one is selected
+    if (staple !== "all") {
+        filteredData = filteredData.filter(row =>
+            row.staple_group === staple
+        );
+    }
+
+    if (filteredData.length === 0) {
+        console.log("No price data found.");
+        return;
+    }
+
+    // Find comparison town
+    const controlTown = filteredData[0].control_town;
+
+    // Average price gap
+    const averageGap =
+        filteredData.reduce((sum, row) => sum + row.gap_pct, 0)
+        / filteredData.length;
+
+    document.getElementById("tourist-town-name").textContent = destination;
+
+    document.getElementById("control-town-name").textContent = controlTown;
+
+    document.getElementById("price-gap").textContent =
+        `${averageGap >= 0 ? "+" : ""}${averageGap.toFixed(1)}%`;
+
+    // Absolute prices only make sense when comparing one staple
+    if (staple !== "all") {
+
+        const touristAverage =
+            filteredData.reduce((sum, row) => sum + row.tourist_avg_price, 0)
+            / filteredData.length;
+
+        const controlAverage =
+            filteredData.reduce((sum, row) => sum + row.control_avg_price, 0)
+            / filteredData.length;
+
+        document.getElementById("tourist-price").textContent =
+            `RM${touristAverage.toFixed(2)}`;
+
+        document.getElementById("control-price").textContent =
+            `RM${controlAverage.toFixed(2)}`;
+
+    } else {
+
+        document.getElementById("tourist-price").textContent = "Multiple";
+        document.getElementById("control-price").textContent = "Multiple";
+    }
+    updatePriceChart(filteredData);
+}
+
+function updatePriceChart(data) {
+
+    // Group rows by month
+    const monthlyData = {};
+
+    data.forEach(row => {
+        if (!monthlyData[row.month]) {
+            monthlyData[row.month] = [];
+        }
+
+        monthlyData[row.month].push(row.gap_pct);
+    });
+
+    // Sort months
+    const months = Object.keys(monthlyData).sort();
+
+    // Calculate average gap for each month
+    const gaps = months.map(month => {
+        const values = monthlyData[month];
+
+        return values.reduce((sum, value) => sum + value, 0) / values.length;
+    });
+
+    const ctx = document
+        .getElementById("price-gap-chart")
+        .getContext("2d");
+
+    // Remove old chart before drawing a new one
+    if (priceGapChart) {
+        priceGapChart.destroy();
+    }
+
+    priceGapChart = new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: months,
+
+            datasets: [{
+                label: "Price Gap (%)",
+                data: gaps,
+                borderColor: "#087f5b",
+                backgroundColor: "rgba(8, 127, 91, 0.10)",
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Price gap: ${context.raw.toFixed(1)}%`;
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: "Price Gap (%)"
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: "Month"
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+document
+    .getElementById("price-destination")
+    .addEventListener("change", updatePriceExplorer);
+
+document
+    .getElementById("price-staple")
+    .addEventListener("change", updatePriceExplorer);
+
+
+  // ========================================
+// COMPARE DESTINATIONS
+// ========================================
+
+function updateComparison() {
+
+    const stateA = document.getElementById("compare-state-a").value;
+    const stateB = document.getElementById("compare-state-b").value;
+
+    updateCompareCard(stateA, "a");
+    updateCompareCard(stateB, "b");
+}
+
+
+function updateCompareCard(stateName, side) {
+
+    // Find 2023 tourism data
+    const tourismData = tourismMapData.find(
+        row => row.state === stateName && row.year === 2023
+    );
+
+    // Find recovery data
+    const recoveryData = recoveryMapData.find(
+        row => row.state === stateName
+    );
+
+    if (!tourismData) {
+        console.log("No comparison data found for:", stateName);
+        return;
+    }
+
+
+    // Convert values for display
+    const receipts =
+        (tourismData.receipts_rm_million / 1000).toFixed(2);
+
+    const visitors =
+        (tourismData.visitors_000 / 1000).toFixed(1);
+
+    const trips =
+        (tourismData.trips_000 / 1000).toFixed(1);
+
+    const recovery = recoveryData
+        ? (recoveryData.recovery_ratio_2023_vs_2019 * 100).toFixed(1)
+        : null;
+
+
+    // Update the card
+    document.getElementById(`compare-name-${side}`)
+        .textContent = stateName;
+
+    document.getElementById(`compare-receipts-${side}`)
+        .textContent = `RM${receipts}B`;
+
+    document.getElementById(`compare-visitors-${side}`)
+        .textContent = `${visitors}M`;
+
+    document.getElementById(`compare-trips-${side}`)
+        .textContent = `${trips}M`;
+
+    document.getElementById(`compare-recovery-${side}`)
+        .textContent = recovery !== null
+            ? `${recovery}%`
+            : "No data";
+}
+
+
+// Update whenever Destination A changes
+document
+    .getElementById("compare-state-a")
+    .addEventListener("change", updateComparison);
+
+
+// Update whenever Destination B changes
+document
+    .getElementById("compare-state-b")
+    .addEventListener("change", updateComparison);  
+
+    // ========================================
+// TOURISM STORY CHART
+// ========================================
+
+let tourismStoryChart = null;
+
+function updateTourismStoryChart() {
+
+    if (!tourismMapData || tourismMapData.length === 0) {
+        console.log("Tourism data not ready for story chart.");
+        return;
+    }
+
+    const yearlyTotals = {};
+
+    tourismMapData.forEach(row => {
+
+        const year = Number(row.year);
+        const receipts = Number(row.receipts_rm_million);
+
+        if (!yearlyTotals[year]) {
+            yearlyTotals[year] = 0;
+        }
+
+        yearlyTotals[year] += receipts;
+    });
+
+
+    const years = Object.keys(yearlyTotals)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+
+    const receipts = years.map(year =>
+        yearlyTotals[year] / 1000
+    );
+
+
+    const ctx = document
+        .getElementById("tourism-story-chart")
+        .getContext("2d");
+
+
+    if (tourismStoryChart) {
+        tourismStoryChart.destroy();
+    }
+
+
+    tourismStoryChart = new Chart(ctx, {
+
+        type: "line",
+
+        data: {
+            labels: years,
+
+            datasets: [{
+                label: "Tourism Receipts (RM Billion)",
+                data: receipts,
+
+                borderColor: "#087f5b",
+                backgroundColor: "rgba(8, 127, 91, 0.10)",
+
+                borderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+
+                tension: 0.3,
+                fill: true
+            }]
+        },
+
+        options: {
+
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `RM${context.raw.toFixed(1)} billion`;
+                        }
+                    }
+                }
+            },
+
+            scales: {
+
+                y: {
+                    beginAtZero: true,
+
+                    title: {
+                        display: true,
+                        text: "Tourism Receipts (RM Billion)"
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: "Year"
+                    }
+                }
+            }
+        }
+    });
 }

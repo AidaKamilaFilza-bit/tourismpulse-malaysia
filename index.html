@@ -21,12 +21,13 @@
     <!-- NAVIGATION -->
     <nav class="navbar">
 
-        <div class="logo">
-            <span class="logo-icon">◉</span>
-            TourismPulse
-            <span class="logo-country">Malaysia</span>
-        </div>
-
+       <div class="logo">
+    <img
+        src="images/logo pulse.png"
+        alt="TourismPulse Malaysia"
+        class="navbar-logo"
+    >
+</div>
         <div class="nav-links">
             <a href="#home" class="active">Home</a>
             <a href="#explore">Explore Malaysia</a>
@@ -114,7 +115,7 @@
 
 
             <div class="kpi-card">
-                <div class="kpi-icon">16</div>
+                <div class="kpi-icon">◎</div>
                 <p class="kpi-label">Areas Analysed</p>
                 <h3 id="areas-analysed">Loading...</h3>
                 <p class="kpi-note">States & Federal Territories</p>
@@ -297,28 +298,523 @@
 
     <!-- PLACEHOLDERS FOR NAVIGATION -->
 
-    <section id="prices" class="placeholder-section">
-        <p class="section-label">LOCAL PRICES</p>
+    <!-- ========================================
+     LOCAL PRICE EXPLORER
+========================================= -->
+
+<section id="prices" class="price-section">
+
+    <div class="price-header">
+        <p class="section-label">LOCAL PRICE EXPLORER</p>
+
         <h2>Does tourism come with higher everyday prices?</h2>
-    </section>
+
+        <p class="price-subtitle">
+            Compare everyday staple prices between selected tourism areas
+            and comparison towns using PriceCatcher data.
+        </p>
+    </div>
 
 
-    <section id="compare" class="placeholder-section">
-        <p class="section-label">COMPARE</p>
-        <h2>Compare Malaysian destinations.</h2>
-    </section>
+    <!-- FILTERS -->
+    <div class="price-filters">
+
+        <div class="filter-group">
+            <label for="price-destination">Tourism Area</label>
+
+            <select id="price-destination">
+                <option value="George Town">George Town</option>
+                <option value="Langkawi">Langkawi</option>
+                <option value="Kuching">Kuching</option>
+                <option value="Kuala Terengganu">Kuala Terengganu</option>
+            </select>
+        </div>
 
 
-    <section id="story" class="placeholder-section">
-        <p class="section-label">TOURISM STORY</p>
-        <h2>From growth to disruption to recovery.</h2>
-    </section>
+        <div class="filter-group">
+            <label for="price-staple">Staple Category</label>
+
+            <select id="price-staple">
+                <option value="all">All Staples</option>
+                <option value="rice">Rice</option>
+                <option value="chicken">Chicken</option>
+                <option value="cooking_oil">Cooking Oil</option>
+                <option value="vegetables">Vegetables</option>
+            </select>
+        </div>
+
+    </div>
 
 
-    <section id="about" class="placeholder-section">
-        <p class="section-label">ABOUT</p>
-        <h2>Built with Malaysian tourism data.</h2>
-    </section>
+    <!-- PRICE COMPARISON -->
+    <div class="price-comparison">
+
+        <div class="price-card">
+            <span>Tourism Area</span>
+
+            <h3 id="tourist-town-name">
+                George Town
+            </h3>
+
+            <strong id="tourist-price">
+                —
+            </strong>
+
+            <small>Average observed price</small>
+        </div>
+
+
+        <div class="price-gap-card">
+
+            <span>PRICE GAP</span>
+
+            <strong id="price-gap">
+                —
+            </strong>
+
+            <small id="price-gap-description">
+                Tourism area vs comparison town
+            </small>
+
+        </div>
+
+
+        <div class="price-card">
+            <span>Comparison Town</span>
+
+            <h3 id="control-town-name">
+                —
+            </h3>
+
+            <strong id="control-price">
+                —
+            </strong>
+
+            <small>Average observed price</small>
+        </div>
+
+    </div>
+
+
+    <!-- MONTHLY PATTERN -->
+    <div class="price-chart-container">
+
+        <div class="price-chart-header">
+            <div>
+                <p class="section-label">MONTHLY PATTERN</p>
+                <h3>How does the price gap change over time?</h3>
+            </div>
+        </div>
+
+        <div id="price-chart">
+    <canvas id="price-gap-chart"></canvas>
+</div>
+
+    </div>
+
+</section>
+
+    <!-- ========================================
+     COMPARE DESTINATIONS
+========================================= -->
+
+<section id="compare" class="compare-section">
+
+    <div class="compare-header">
+        <p class="section-label">COMPARE DESTINATIONS</p>
+
+        <h2>How do Malaysian destinations compare?</h2>
+
+        <p>
+            Select two destinations to compare their 2023 tourism
+            performance and recovery since 2019.
+        </p>
+    </div>
+
+
+    <!-- STATE SELECTORS -->
+    <div class="compare-selectors">
+
+        <div class="compare-select-group">
+            <label for="compare-state-a">Destination A</label>
+
+            <select id="compare-state-a">
+                <option value="Johor">Johor</option>
+                <option value="Kedah">Kedah</option>
+                <option value="Kelantan">Kelantan</option>
+                <option value="Melaka">Melaka</option>
+                <option value="Negeri Sembilan">Negeri Sembilan</option>
+                <option value="Pahang">Pahang</option>
+                <option value="Perak">Perak</option>
+                <option value="Perlis">Perlis</option>
+                <option value="Pulau Pinang">Pulau Pinang</option>
+                <option value="Sabah">Sabah</option>
+                <option value="Sarawak">Sarawak</option>
+                <option value="Selangor">Selangor</option>
+                <option value="Terengganu">Terengganu</option>
+                <option value="WP Kuala Lumpur">WP Kuala Lumpur</option>
+                <option value="WP Labuan">WP Labuan</option>
+                <option value="WP Putrajaya">WP Putrajaya</option>
+            </select>
+        </div>
+
+
+        <div class="compare-vs">VS</div>
+
+
+        <div class="compare-select-group">
+            <label for="compare-state-b">Destination B</label>
+
+            <select id="compare-state-b">
+                <option value="Pulau Pinang">Pulau Pinang</option>
+                <option value="Johor">Johor</option>
+                <option value="Kedah">Kedah</option>
+                <option value="Kelantan">Kelantan</option>
+                <option value="Melaka">Melaka</option>
+                <option value="Negeri Sembilan">Negeri Sembilan</option>
+                <option value="Pahang">Pahang</option>
+                <option value="Perak">Perak</option>
+                <option value="Perlis">Perlis</option>
+                <option value="Sabah">Sabah</option>
+                <option value="Sarawak">Sarawak</option>
+                <option value="Selangor">Selangor</option>
+                <option value="Terengganu">Terengganu</option>
+                <option value="WP Kuala Lumpur">WP Kuala Lumpur</option>
+                <option value="WP Labuan">WP Labuan</option>
+                <option value="WP Putrajaya">WP Putrajaya</option>
+            </select>
+        </div>
+
+    </div>
+
+
+    <!-- COMPARISON CARDS -->
+    <div class="compare-grid">
+
+        <div class="compare-destination-card">
+            <p>DESTINATION A</p>
+            <h3 id="compare-name-a">Johor</h3>
+
+            <div class="compare-metrics">
+                <div>
+                    <span>Tourism Receipts</span>
+                    <strong id="compare-receipts-a">—</strong>
+                </div>
+
+                <div>
+                    <span>Visitors</span>
+                    <strong id="compare-visitors-a">—</strong>
+                </div>
+
+                <div>
+                    <span>Trips</span>
+                    <strong id="compare-trips-a">—</strong>
+                </div>
+
+                <div>
+                    <span>Recovery vs 2019</span>
+                    <strong id="compare-recovery-a">—</strong>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="compare-destination-card">
+            <p>DESTINATION B</p>
+            <h3 id="compare-name-b">Pulau Pinang</h3>
+
+            <div class="compare-metrics">
+                <div>
+                    <span>Tourism Receipts</span>
+                    <strong id="compare-receipts-b">—</strong>
+                </div>
+
+                <div>
+                    <span>Visitors</span>
+                    <strong id="compare-visitors-b">—</strong>
+                </div>
+
+                <div>
+                    <span>Trips</span>
+                    <strong id="compare-trips-b">—</strong>
+                </div>
+
+                <div>
+                    <span>Recovery vs 2019</span>
+                    <strong id="compare-recovery-b">—</strong>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+    <!-- ========================================
+     TOURISM STORY
+========================================= -->
+
+<section id="story" class="story-section">
+
+    <div class="story-header">
+        <p class="section-label">MALAYSIA'S TOURISM STORY</p>
+        <h2>From disruption to recovery.</h2>
+        <p class="story-intro">
+            Malaysia's tourism landscape changed dramatically after 2019.
+            Explore how domestic tourism moved through disruption,
+            reopening and recovery.
+        </p>
+    </div>
+
+
+    <!-- STORY TIMELINE -->
+    <div class="story-timeline">
+
+        <div class="story-item">
+            <div class="story-year">2019</div>
+            <div class="story-content">
+                <span class="story-tag">PRE-PANDEMIC</span>
+                <h3>The benchmark year</h3>
+                <p>
+                    2019 provides the pre-pandemic benchmark used to
+                    understand how strongly each destination has recovered.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="story-item">
+            <div class="story-year">2020–21</div>
+            <div class="story-content">
+                <span class="story-tag">DISRUPTION</span>
+                <h3>Tourism activity falls sharply</h3>
+                <p>
+                    Travel restrictions and reduced mobility disrupted
+                    tourism activity across Malaysian destinations.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="story-item">
+            <div class="story-year">2022</div>
+            <div class="story-content">
+                <span class="story-tag">REOPENING</span>
+                <h3>Travel begins to return</h3>
+                <p>
+                    As mobility returned, tourism activity began rebuilding
+                    across the country.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="story-item">
+            <div class="story-year">2023</div>
+            <div class="story-content">
+                <span class="story-tag">RECOVERY</span>
+                <h3>Not every destination recovered equally</h3>
+                <p>
+                    By 2023, some destinations had returned to or exceeded
+                    their 2019 tourism levels, while others remained below
+                    their pre-pandemic benchmark.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOURISM TREND CHART -->
+<div class="story-chart-container">
+
+    <div class="story-chart-header">
+        <div>
+            <p class="section-label">TOURISM TREND</p>
+            <h3>Malaysia's Tourism Journey, 2017–2023</h3>
+            <p>
+                Follow the national trend from pre-pandemic activity,
+                through disruption, and into recovery.
+            </p>
+        </div>
+    </div>
+
+    <div class="story-chart">
+        <canvas id="tourism-story-chart"></canvas>
+    </div>
+
+</div>
+
+    <!-- STORY CONCLUSION -->
+<div class="story-insight">
+
+    <div>
+        <p class="section-label">THE BIGGER PICTURE</p>
+
+        <h3>
+            Tourism recovery tells only part of the story.
+        </h3>
+
+        <p>
+            TourismPulse brings together destination recovery, tourism
+            performance and local price comparisons to provide a broader
+            view of how tourism growth interacts with destination
+            sustainability and local affordability.
+        </p>
+    </div>
+
+</div>
+
+        
+    </div>
+
+</section>
+
+
+    <!-- ========================================
+     ABOUT
+========================================= -->
+
+<section id="about" class="about-section">
+
+    <div class="about-header">
+        <p class="section-label">ABOUT TOURISMPULSE</p>
+        <h2>Understanding tourism beyond visitor numbers.</h2>
+
+        <p>
+            TourismPulse Malaysia is an interactive tourism intelligence
+            platform that brings together tourism performance, destination
+            recovery and local price comparisons to support a broader view
+            of sustainable tourism in Malaysia.
+        </p>
+    </div>
+
+
+    <!-- ABOUT CARDS -->
+    <div class="about-grid">
+
+        <div class="about-card">
+            <span class="about-number">01</span>
+            <h3>Tourism Performance</h3>
+            <p>
+                Explore tourism receipts, visitors, trips and average
+                length of stay across Malaysian states and federal
+                territories.
+            </p>
+        </div>
+
+
+        <div class="about-card">
+            <span class="about-number">02</span>
+            <h3>Destination Recovery</h3>
+            <p>
+                Compare 2023 tourism performance against the 2019
+                pre-pandemic benchmark to understand how recovery
+                differs across destinations.
+            </p>
+        </div>
+
+
+        <div class="about-card">
+            <span class="about-number">03</span>
+            <h3>Local Affordability</h3>
+            <p>
+                Compare selected everyday staple prices between tourism
+                areas and matched comparison towns to explore observed
+                differences in local prices.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- DATA & METHODOLOGY -->
+    <div class="about-methodology">
+
+        <div class="methodology-column">
+
+            <p class="section-label">DATA</p>
+            <h3>Built using Malaysian data</h3>
+
+            <p>
+                The analysis combines tourism indicators with selected
+                local price observations to connect destination performance
+                with questions of affordability and sustainability.
+            </p>
+
+            <div class="source-tags">
+                <span>DOSM Tourism Statistics</span>
+                <span>PriceCatcher</span>
+            </div>
+
+        </div>
+
+
+        <div class="methodology-column">
+
+            <p class="section-label">METHODOLOGY NOTE</p>
+            <h3>How to interpret the results</h3>
+
+            <p>
+                Tourism recovery is measured relative to the 2019
+                pre-pandemic benchmark. Local price comparisons use matched
+                tourism areas and comparison towns across selected staple
+                categories.
+            </p>
+
+            <p class="methodology-note">
+                Price differences are descriptive. They show observed
+                differences between selected locations and should not be
+                interpreted as evidence that tourism caused changes in
+                local prices.
+            </p>
+
+        </div>
+
+    </div>
+    <!-- PROJECT CREDITS -->
+<div class="project-credits">
+
+    <div class="credits-heading">
+        <p class="section-label">PROJECT & DATA</p>
+        <h3>Created for DOSM Datathon 2026</h3>
+    </div>
+
+    <div class="credits-logos">
+
+        <div class="credit-item">
+            <span>Developed by</span>
+
+            <img
+                src="images/group logo.png"
+                alt="404 Error Group"
+                class="group-logo"
+            >
+
+            <p>Team 404 Error</p>
+        </div>
+
+
+        <div class="credit-divider"></div>
+
+
+        <div class="credit-item">
+            <span>Data Source & Competition</span>
+
+            <img
+                src="images/dosm logo.png"
+                alt="Department of Statistics Malaysia"
+                class="dosm-logo"
+            >
+
+            <p>Department of Statistics Malaysia</p>
+        </div>
+
+    </div>
+
+</div>
+
+</section>
 
 
     <!-- FOOTER -->
@@ -341,6 +837,8 @@
 
 <!-- CSV Reader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- TourismPulse JavaScript -->
 <script src="script.js"></script>
