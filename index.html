@@ -31,6 +31,7 @@
         <div class="nav-links">
             <a href="#home" class="active">Home</a>
             <a href="#explore">Explore Malaysia</a>
+            <a href="#clusters">Recovery Clusters</a>
             <a href="#prices">Local Prices</a>
             <a href="#compare">Compare</a>
             <a href="#recommend">Smart Recommender</a>
@@ -179,7 +180,7 @@
 
 
 <!-- 02 -->
-<a href="#explore" class="pillar-card pillar-link">
+<a href="#clusters" class="pillar-card pillar-link">
 
     <div class="pillar-number">02</div>
 
@@ -359,6 +360,144 @@
 
 
     <!-- PLACEHOLDERS FOR NAVIGATION -->
+
+    
+<!-- ========================================
+     TOURISM RECOVERY CLUSTERS
+======================================== -->
+
+<section id="clusters" class="clusters-section">
+
+    <div class="clusters-header">
+        <p class="section-label">TOURISM RECOVERY CLUSTERS</p>
+
+        <h2>Three Different Paths to Tourism Recovery</h2>
+
+        <p>
+            Not every Malaysian destination recovered from the pandemic
+            in the same way. Explore three recovery patterns identified
+            through clustering analysis of historical tourism performance.
+        </p>
+    </div>
+
+    <div class="clusters-grid">
+
+        <!-- CLUSTER 0 -->
+        <button class="cluster-card active" data-cluster="0">
+            <span class="cluster-number">CLUSTER 0</span>
+            <h3>Prolonged Crash, Sharp Rebound</h3>
+            <p>
+                Tourism continued declining in 2021 before experiencing
+                a sharp rebound in 2022.
+            </p>
+            <span class="cluster-count">8 States</span>
+        </button>
+
+        <!-- CLUSTER 1 -->
+        <button class="cluster-card" data-cluster="1">
+            <span class="cluster-number">CLUSTER 1</span>
+            <h3>Shallower Decline, Steady Rebound</h3>
+            <p>
+                The decline eased in 2021, followed by a steadier
+                recovery through 2023.
+            </p>
+            <span class="cluster-count">6 States</span>
+        </button>
+
+        <!-- CLUSTER 2 -->
+        <button class="cluster-card" data-cluster="2">
+            <span class="cluster-number">CLUSTER 2</span>
+            <h3>Most Volatile, Still Furthest Behind</h3>
+            <p>
+                The deepest initial decline was followed by a strong
+                rebound, but recovery remained below earlier levels.
+            </p>
+            <span class="cluster-count">2 Federal Territories</span>
+        </button>
+
+    </div>
+
+    <!-- SELECTED CLUSTER DETAILS -->
+    <div class="cluster-details">
+
+        <div class="cluster-details-header">
+            <div>
+                <p class="section-label">EXPLORE THE CLUSTER</p>
+                <h3 id="cluster-selected-title">Cluster 0</h3>
+            </div>
+        </div>
+
+        <p id="cluster-description">
+            Select a cluster to explore its recovery pattern.
+        </p>
+
+        <h4>States in this Cluster</h4>
+        <div id="cluster-states" class="cluster-states"></div>
+
+        <div class="cluster-chart-container">
+            <h4>Tourism Recovery Trend (2019 = 100)</h4>
+            <p>
+                Compare the selected cluster's average tourism receipts
+                relative to its 2019 baseline.
+            </p>
+
+            <canvas id="cluster-recovery-chart"></canvas>
+        </div>
+
+        
+<!-- ALL CLUSTERS COMPARISON -->
+<div class="cluster-chart-container cluster-comparison-container">
+
+    <h4>How Do the Three Recovery Patterns Compare?</h4>
+
+    <p>
+        Compare the average tourism recovery trends of all three
+        clusters from 2019 to 2023, using 2019 as the baseline.
+    </p>
+
+    <canvas id="cluster-comparison-chart"></canvas>
+
+</div>
+
+
+<!-- RECOVERY INSIGHTS -->
+<div class="cluster-insights">
+
+    <h3>What Does This Mean?</h3>
+
+    <p>
+        Malaysia's tourism destinations experienced different
+        recovery journeys following the pandemic.
+    </p>
+
+    <p>
+        <strong>Steadier recovery:</strong>
+        Cluster 1 reached the highest average recovery index
+        by 2023.
+    </p>
+
+    <p>
+        <strong>Strong rebound:</strong>
+        Cluster 0 recovered substantially after experiencing
+        a prolonged decline.
+    </p>
+
+    <p>
+        <strong>Recovery challenges:</strong>
+        Cluster 2 experienced the sharpest decline and remained
+        furthest below its pre-pandemic level in 2023.
+    </p>
+
+</div>
+
+        <p class="cluster-note">
+            Cluster patterns describe historical tourism performance
+            and do not predict future recovery.
+        </p>
+
+    </div>
+
+</section>
 
     <!-- ========================================
      LOCAL PRICE EXPLORER

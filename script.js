@@ -2251,3 +2251,393 @@ if (forecast2024 && forecast2026) {
         }
     });
 }
+
+
+
+/* ========================================
+   TOURISM RECOVERY CLUSTERS
+======================================== */
+
+let clusterRecoveryChart = null;
+
+const clusterDescriptions = {
+    0: {
+        title: "Cluster 0 — Prolonged Crash, Sharp Rebound",
+        description:
+            "Tourism declined sharply in 2020 and continued weakening in 2021, before rebounding strongly in 2022.",
+        color: "#087f5b"
+    },
+    1: {
+        title: "Cluster 1 — Shallower Decline, Steady Rebound",
+        description:
+            "Tourism declined in 2020, but the decline eased in 2021. Recovery continued more steadily through 2023.",
+        color: "#2563eb"
+    },
+    2: {
+        title: "Cluster 2 — Most Volatile, Still Furthest Behind",
+        description:
+            "These destinations experienced the deepest initial decline and a strong rebound, but remained furthest below their 2019 tourism levels.",
+        color: "#d97706"
+    }
+};
+
+let clusterData = [];
+let clusterTourismData = [];
+
+function loadRecoveryClusters() {
+
+    Papa.parse("data/recovery_index_f.csv", {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+
+        complete: function(results) {
+
+            clusterData = results.data;
+
+            Papa.parse("data/tourism_state_panel_clean.csv", {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+
+                complete: function(tourismResults) {
+
+                    clusterTourismData = tourismResults.data;
+
+                    setupClusterCards();
+                    displayCluster(0);
+                    updateClusterComparisonChart();
+
+                    console.log("Recovery clusters loaded!");
+                },
+
+                error: function(error) {
+                    console.error("Cluster tourism data error:", error);
+                }
+            });
+        },
+
+        error: function(error) {
+            console.error("Cluster data error:", error);
+        }
+    });
+}
+
+function setupClusterCards() {
+
+    document.querySelectorAll(".cluster-card").forEach(card => {
+
+        card.addEventListener("click", function() {
+
+            const selectedCluster = Number(this.dataset.cluster);
+
+            document.querySelectorAll(".cluster-card").forEach(item => {
+                item.classList.remove("active");
+            });
+
+            this.classList.add("active");
+
+            displayCluster(selectedCluster);
+        });
+    });
+}
+
+function displayCluster(clusterNumber) {
+
+    const cluster = clusterDescriptions[clusterNumber];
+
+    if (!cluster) return;
+
+    document.getElementById("cluster-selected-title").textContent =
+        cluster.title;
+
+    document.getElementById("cluster-description").textContent =
+        cluster.description;
+
+    // Filter states belonging to selected cluster
+    const states = clusterData.filter(row =>
+        Number(row.cluster) === clusterNumber
+    );
+
+    const statesContainer = document.getElementById("cluster-states");
+
+    statesContainer.innerHTML = "";
+
+    states.forEach(row => {
+
+        const stateBadge = document.createElement("span");
+        stateBadge.className = "cluster-state";
+
+        const recovery = Number(row.recovery_ratio_2023_vs_2019);
+
+        const recoveryText = Number.isFinite(recovery)
+            ? ` — ${(recovery * 100).toFixed(1)}%`
+            : "";
+
+        stateBadge.textContent = row.state + recoveryText;
+
+        statesContainer.appendChild(stateBadge);
+    });
+
+    updateClusterRecoveryChart(states, cluster);
+}
+
+function updateClusterRecoveryChart(states, cluster) {
+
+    const canvas = document.getElementById("cluster-recovery-chart");
+
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const years = [2019, 2020, 2021, 2022, 2023];
+
+    const stateNames = new Set(states.map(row => row.state));
+
+    // Build a 2019 baseline for each state
+    const baselineByState = {};
+
+    clusterTourismData.forEach(row => {
+
+        if (
+            Number(row.year) === 2019 &&
+            stateNames.has(row.state)
+        ) {
+            baselineByState[row.state] =
+                Number(row.receipts_rm_million);
+        }
+    });
+
+    // Calculate each state's receipts as an index
+    // relative to its own 2019 receipts.
+    // Then take the average across states in the cluster.
+    const values = years.map(year => {
+
+        const indexedValues = clusterTourismData
+            .filter(row =>
+                Number(row.year) === year &&
+                stateNames.has(row.state)
+            )
+            .map(row => {
+
+                const baseline = baselineByState[row.state];
+                const receipts = Number(row.receipts_rm_million);
+
+                if (
+                    !Number.isFinite(baseline) ||
+                    baseline <= 0 ||
+                    !Number.isFinite(receipts)
+                ) {
+                    return null;
+                }
+
+                return (receipts / baseline) * 100;
+            })
+            .filter(value => value !== null);
+
+        if (!indexedValues.length) return null;
+
+        return indexedValues.reduce((a, b) => a + b, 0)
+            / indexedValues.length;
+    });
+
+    if (clusterRecoveryChart) {
+        clusterRecoveryChart.destroy();
+    }
+
+    clusterRecoveryChart = new Chart(canvas, {
+        type: "line",
+
+        data: {
+            labels: years,
+
+            datasets: [{
+                label: "Average Recovery Index",
+                data: values,
+                borderColor: cluster.color,
+                backgroundColor: cluster.color,
+                borderWidth: 3,
+                tension: 0.3,
+                pointRadius: 5,
+                fill: false,
+                spanGaps: false
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return "Recovery Index: " +
+                                context.parsed.y.toFixed(1);
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: "2019 = 100"
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: "Year"
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Start the cluster section once the page is ready
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadRecoveryClusters);
+} else {
+    loadRecoveryClusters();
+}
+
+
+
+
+/* ========================================
+   COMPARE ALL THREE RECOVERY CLUSTERS
+======================================== */
+
+let clusterComparisonChart = null;
+
+function updateClusterComparisonChart() {
+
+    const canvas = document.getElementById("cluster-comparison-chart");
+
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const years = [2019, 2020, 2021, 2022, 2023];
+
+    const datasets = [0, 1, 2].map(clusterNumber => {
+
+        const cluster = clusterDescriptions[clusterNumber];
+
+        const stateNames = new Set(
+            clusterData
+                .filter(row => Number(row.cluster) === clusterNumber)
+                .map(row => row.state)
+        );
+
+        // Get each state's 2019 tourism receipts
+        const baselineByState = {};
+
+        clusterTourismData.forEach(row => {
+            if (
+                Number(row.year) === 2019 &&
+                stateNames.has(row.state)
+            ) {
+                baselineByState[row.state] =
+                    Number(row.receipts_rm_million);
+            }
+        });
+
+        const values = years.map(year => {
+
+            const indexedValues = clusterTourismData
+                .filter(row =>
+                    Number(row.year) === year &&
+                    stateNames.has(row.state)
+                )
+                .map(row => {
+
+                    const baseline = baselineByState[row.state];
+                    const receipts = Number(row.receipts_rm_million);
+
+                    if (
+                        !Number.isFinite(baseline) ||
+                        baseline <= 0 ||
+                        !Number.isFinite(receipts)
+                    ) {
+                        return null;
+                    }
+
+                    return (receipts / baseline) * 100;
+                })
+                .filter(value => value !== null);
+
+            if (!indexedValues.length) return null;
+
+            return indexedValues.reduce((a, b) => a + b, 0)
+                / indexedValues.length;
+        });
+
+        return {
+            label: cluster.title,
+            data: values,
+            borderColor: cluster.color,
+            backgroundColor: cluster.color,
+            borderWidth: 3,
+            pointRadius: 4,
+            tension: 0.3,
+            fill: false,
+            spanGaps: false
+        };
+    });
+
+    if (clusterComparisonChart) {
+        clusterComparisonChart.destroy();
+    }
+
+    clusterComparisonChart = new Chart(canvas, {
+        type: "line",
+
+        data: {
+            labels: years,
+            datasets: datasets
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ": " +
+                                context.parsed.y.toFixed(1);
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: "Recovery Index (2019 = 100)"
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: "Year"
+                    }
+                }
+            }
+        }
+    });
+}
