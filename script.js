@@ -2239,21 +2239,23 @@ let clusterRecoveryChart = null;
 
 const clusterDescriptions = {
     0: {
-        title: "Cluster 0 — Prolonged Crash, Sharp Rebound",
+        title: "Cluster 0 — Strongest Recovery, Broad Rebound",
         description:
-            "Tourism declined sharply in 2020 and continued weakening in 2021, before rebounding strongly in 2022.",
+            "This cluster recorded the strongest average recovery by 2025, reaching approximately 126% of its 2019 tourism receipts. Perlis led all states at 209.3%, followed by Melaka at 137.1% and Pahang at 129.6%. All seven states exceeded their pre-pandemic tourism levels.",
         color: "#087f5b"
     },
+
     1: {
-        title: "Cluster 1 — Shallower Decline, Steady Rebound",
+        title: "Cluster 1 — Steady Recovery, Mixed Performance",
         description:
-            "Tourism declined in 2020, but the decline eased in 2021. Recovery continued more steadily through 2023.",
+            "This cluster achieved an average recovery index of approximately 116% in 2025. Kuala Lumpur led the group at 139.2%, followed by Negeri Sembilan at 128.8% and Pulau Pinang at 127.6%. However, Terengganu remained slightly below its 2019 baseline at 96.7%, highlighting uneven recovery across destinations.",
         color: "#2563eb"
     },
+
     2: {
-        title: "Cluster 2 — Most Volatile, Still Furthest Behind",
+        title: "Cluster 2 — Deepest Decline, Strong Rebound",
         description:
-            "These destinations experienced the deepest initial decline and a strong rebound, but remained furthest below their 2019 tourism levels.",
+            "Putrajaya and Labuan experienced the sharpest pandemic-related declines, followed by a substantial recovery. By 2025, Putrajaya reached 145.6% of its 2019 tourism receipts, while Labuan recovered to 96.7%. Together, they achieved an average recovery index of approximately 121.2%.",
         color: "#d97706"
     }
 };
@@ -2273,7 +2275,7 @@ function loadRecoveryClusters() {
 
             clusterData = results.data;
 
-            Papa.parse("data/tourism_state_panel_clean.csv", {
+            Papa.parse("data/tourism_state_panel_2025.csv", {
                 download: true,
                 header: true,
                 dynamicTyping: true,
@@ -2367,20 +2369,23 @@ function updateClusterRecoveryChart(states, cluster) {
 
     if (!canvas || typeof Chart === "undefined") return;
 
-    const years = [2019, 2020, 2021, 2022, 2023];
+    const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
 
-    const stateNames = new Set(states.map(row => row.state));
+    const stateNames = new Set(
+    states.map(row => normaliseStateName(row.state))
+    );
 
     // Build a 2019 baseline for each state
     const baselineByState = {};
 
     clusterTourismData.forEach(row => {
+        const state = normaliseStateName(row.state);
 
         if (
             Number(row.year) === 2019 &&
-            stateNames.has(row.state)
+            stateNames.has(state)
         ) {
-            baselineByState[row.state] =
+            baselineByState[state] =
                 Number(row.receipts_rm_million);
         }
     });
@@ -2392,12 +2397,14 @@ function updateClusterRecoveryChart(states, cluster) {
 
         const indexedValues = clusterTourismData
             .filter(row =>
-                Number(row.year) === year &&
-                stateNames.has(row.state)
+                 Number(row.year) === year &&
+                stateNames.has(normaliseStateName(row.state))
             )
             .map(row => {
 
-                const baseline = baselineByState[row.state];
+                const baseline = baselineByState[
+                    normaliseStateName(row.state)
+                ];
                 const receipts = Number(row.receipts_rm_million);
 
                 if (
@@ -2501,7 +2508,7 @@ function updateClusterComparisonChart() {
 
     if (!canvas || typeof Chart === "undefined") return;
 
-    const years = [2019, 2020, 2021, 2022, 2023];
+    const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
 
     const datasets = [0, 1, 2].map(clusterNumber => {
 
@@ -2510,18 +2517,20 @@ function updateClusterComparisonChart() {
         const stateNames = new Set(
             clusterData
                 .filter(row => Number(row.cluster) === clusterNumber)
-                .map(row => row.state)
+                .map(row => normaliseStateName(row.state))
         );
 
         // Get each state's 2019 tourism receipts
         const baselineByState = {};
 
         clusterTourismData.forEach(row => {
+            const state = normaliseStateName(row.state);
+
             if (
                 Number(row.year) === 2019 &&
-                stateNames.has(row.state)
+                stateNames.has(state)
             ) {
-                baselineByState[row.state] =
+                baselineByState[state] =
                     Number(row.receipts_rm_million);
             }
         });
@@ -2531,11 +2540,13 @@ function updateClusterComparisonChart() {
             const indexedValues = clusterTourismData
                 .filter(row =>
                     Number(row.year) === year &&
-                    stateNames.has(row.state)
+                    stateNames.has(normaliseStateName(row.state))
                 )
                 .map(row => {
 
-                    const baseline = baselineByState[row.state];
+                    const baseline = baselineByState[
+                        normaliseStateName(row.state)
+                    ];
                     const receipts = Number(row.receipts_rm_million);
 
                     if (
