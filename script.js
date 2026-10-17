@@ -1,4 +1,50 @@
 // ========================================
+// TOURISM DATA CONFIGURATION
+// ========================================
+
+const LATEST_TOURISM_YEAR = 2025;
+
+// Standardise state names across datasets
+function normaliseStateName(name) {
+    const names = {
+        "W.P. Kuala Lumpur": "WP Kuala Lumpur",
+        "W.P. Putrajaya": "WP Putrajaya",
+        "W.P. Labuan": "WP Labuan",
+        "Penang": "Pulau Pinang"
+    };
+
+    return names[name] || name;
+}
+
+// Combine original 2017–2018 data with updated 2019–2025 data
+async function loadCombinedTourismData() {
+    const loadCSV = path => new Promise((resolve, reject) => {
+        Papa.parse(path, {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: results => resolve(results.data),
+            error: reject
+        });
+    });
+
+    const [original, updated] = await Promise.all([
+        loadCSV("data/tourism_state_panel_clean.csv"),
+        loadCSV("data/tourism_state_panel_2025.csv")
+    ]);
+
+    return [
+        ...original.filter(row => Number(row.year) < 2019),
+        ...updated
+    ].map(row => ({
+        ...row,
+        state: normaliseStateName(row.state),
+        year: Number(row.year)
+    }));
+}
+
+// ========================================
 // MAP DATA STORAGE
 // ========================================
 
@@ -34,7 +80,7 @@ L.tileLayer(
 // LOAD TOURISM RECOVERY + MALAYSIA MAP
 // ========================================
 
-Papa.parse("data/recovery_index_f.csv", {
+Papa.parse("data/recovery_index_2025.csv", {
 
     download: true,
     header: true,
@@ -43,11 +89,20 @@ Papa.parse("data/recovery_index_f.csv", {
 
     complete: function(results) {
 
-        const recoveryData = results.data;
-        recoveryMapData = recoveryData;
+        const recoveryData = results.data.map(row => ({
+    ...row,
+    state: normaliseStateName(row.state)
+}));
 
+recoveryMapData = recoveryData;
+
+console.log(
+    "Recovery CSV first row:",
+    JSON.stringify(recoveryMapData[0])
+);
         console.log("Recovery data loaded!");
         console.log(recoveryData);
+        console.log("Recovery CSV first row:", recoveryMapData[0]);
 
         // --------------------------------
         // Match GeoJSON names to CSV names
@@ -57,7 +112,8 @@ Papa.parse("data/recovery_index_f.csv", {
             "Kuala Lumpur": "WP Kuala Lumpur",
             "Putrajaya": "WP Putrajaya",
             "Labuan": "WP Labuan",
-            "Penang": "Pulau Pinang"
+            "Penang": "Pulau Pinang",
+            "Malacca": "Melaka"
         };
 
         // --------------------------------
@@ -109,7 +165,7 @@ Papa.parse("data/recovery_index_f.csv", {
 
                         const recovery =
                             stateData
-                                ? stateData.recovery_ratio_2023_vs_2019
+                                ? stateData.recovery_ratio_2025_vs_2019
                                 : null;
 
                         return {
@@ -142,7 +198,7 @@ Papa.parse("data/recovery_index_f.csv", {
                             const recoveryPercent =
                                 (
                                     stateData
-                                        .recovery_ratio_2023_vs_2019
+                                        .recovery_ratio_2025_vs_2019
                                     * 100
                                 ).toFixed(1);
 
@@ -193,33 +249,33 @@ mapLegend.onAdd = function() {
         "map-legend"
     );
 
-    div.innerHTML = `
-        <h4>Tourism Recovery</h4>
+ div.innerHTML = `
+    <h4>Tourism Recovery</h4>
 
-        <div>
-            <span class="legend-color"
-                  style="background:#087f5b"></span>
-            <span><strong>100%+</strong> Above 2019 level</span>
-        </div>
+    <div style="
+        width: 100%;
+        height: 16px;
+        border-radius: 5px;
+        background: linear-gradient(
+            to right,
+            #d95d39,
+            #f4a261,
+            #52b788,
+            #087f5b
+        );
+        margin: 12px 0 6px 0;
+    "></div>
 
-        <div>
-            <span class="legend-color"
-                  style="background:#52b788"></span>
-            <span><strong>85–99.9%</strong> Near 2019 level</span>
-        </div>
-
-        <div>
-            <span class="legend-color"
-                  style="background:#f4a261"></span>
-            <span><strong>70–84.9%</strong> Still recovering</span>
-        </div>
-
-        <div>
-            <span class="legend-color"
-                  style="background:#d95d39"></span>
-            <span><strong>&lt;70%</strong> Further below 2019</span>
-        </div>
-    `;
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-weight: 600;
+    ">
+        <span>Lowest</span>
+        <span>Highest</span>
+    </div>
+`;
 
     return div;
 };
@@ -239,111 +295,83 @@ mapLegend.addTo(map);
 // Load tourism data
 // ========================================
 
-Papa.parse("data/tourism_state_panel_clean.csv", {
+loadCombinedTourismData().then(function(tourismData) {
 
-    download: true,
-    header: true,
-    dynamicTyping: true,
-    skipEmptyLines: true,
+    tourismMapData = tourismData;
 
-    complete: function(results) {
-
-        const tourismData = results.data;
-        tourismMapData = tourismData;
-
-        updateTourismStoryChart();
+    updateTourismStoryChart();
 
         console.log("Tourism data loaded!");
         console.log(tourismData);
 
 
         // ========================================
-        // 1. FILTER 2019 AND 2023 DATA
-        // ========================================
+// 1. FILTER 2019 AND 2025 DATA
+// ========================================
 
-        const data2019 = tourismData.filter(row => row.year === 2019);
-        const data2023 = tourismData.filter(row => row.year === 2023);
-
-console.log(
-    "2023 Visitors:",
-    data2023.map(row => ({
-        state: row.state,
-        visitors: row.visitors_000
-    }))
+const data2019 = tourismData.filter(
+    row => Number(row.year) === 2019
 );
 
-console.log(
-    "2023 Trips:",
-    data2023.map(row => ({
-        state: row.state,
-        trips: row.trips_000
-    }))
+const data2025 = tourismData.filter(
+    row => Number(row.year) === LATEST_TOURISM_YEAR
 );
 
-        // ========================================
-        // 2. TOTAL TOURISM RECEIPTS 2023
-        // ========================================
+// ========================================
+// 2. TOTAL TOURISM RECEIPTS 2025
+// ========================================
 
-        const receipts2023 = data2023.reduce(
-            (total, row) => total + (row.receipts_rm_million || 0),
-            0
-        );
+const receipts2025 = data2025.reduce(
+    (total, row) =>
+        total + (Number(row.receipts_rm_million) || 0),
+    0
+);
 
-        const receipts2023Billion = receipts2023 / 1000;
+const receipts2025Billion = receipts2025 / 1000;
 
+// ========================================
+// 3. TOTAL TOURISM RECEIPTS 2019
+// ========================================
 
-        // ========================================
-        // 3. TOTAL TOURISM RECEIPTS 2019
-        // ========================================
+const receipts2019 = data2019.reduce(
+    (total, row) =>
+        total + (Number(row.receipts_rm_million) || 0),
+    0
+);
 
-        const receipts2019 = data2019.reduce(
-            (total, row) => total + (row.receipts_rm_million || 0),
-            0
-        );
+// ========================================
+// 4. NATIONAL RECOVERY
+// ========================================
 
+const recovery = receipts2019 > 0
+    ? (receipts2025 / receipts2019) * 100
+    : 0;
 
-        // ========================================
-        // 4. NATIONAL RECOVERY
-        // ========================================
+// ========================================
+// 5. NUMBER OF AREAS
+// ========================================
 
-        const recovery =
-            (receipts2023 / receipts2019) * 100;
+const states = new Set(
+    tourismData.map(row => row.state).filter(Boolean)
+);
 
+const numberOfAreas = states.size;
 
-        // ========================================
-        // 5. NUMBER OF AREAS
-        // ========================================
+// ========================================
+// 6. DISPLAY ON WEBSITE
+// ========================================
 
-        const states = new Set(
-            tourismData
-                .map(row => row.state)
-                .filter(Boolean)
-        );
+document.getElementById("total-receipts").textContent =
+    "RM" + receipts2025Billion.toFixed(1) + "B";
 
-        const numberOfAreas = states.size;
+document.getElementById("national-recovery").textContent =
+    recovery.toFixed(1) + "%";
 
+document.getElementById("areas-analysed").textContent =
+    numberOfAreas;
 
-        // ========================================
-        // 6. DISPLAY ON WEBSITE
-        // ========================================
-
-        document.getElementById("total-receipts").textContent =
-            "RM" + receipts2023Billion.toFixed(1) + "B";
-
-        document.getElementById("national-recovery").textContent =
-            recovery.toFixed(1) + "%";
-
-        document.getElementById("areas-analysed").textContent =
-            numberOfAreas;
-
-    },
-
-    error: function(error) {
-
-        console.error("Error loading tourism data:", error);
-
-    }
-
+    }).catch(function(error) {
+    console.error("Error loading tourism data:", error);
 });
 
 // ========================================
@@ -386,12 +414,12 @@ document
 
 function showReceiptsMap() {
 
-    // Get only 2023 tourism data
-    const data2023 = tourismMapData.filter(
-        row => row.year === 2023
-    );
+    // Get only 2025 tourism data
+    const data2025 = tourismMapData.filter(
+    row => Number(row.year) === LATEST_TOURISM_YEAR
+);
 
-    console.log("2023 map data:", data2023);
+    console.log("2025 map data:", data2025);
 
 
     // Remove current state layer
@@ -405,7 +433,8 @@ function showReceiptsMap() {
         "Kuala Lumpur": "WP Kuala Lumpur",
         "Putrajaya": "WP Putrajaya",
         "Labuan": "WP Labuan",
-        "Penang": "Pulau Pinang"
+        "Penang": "Pulau Pinang",
+        "Malacca": "Melaka"
     };
 
 
@@ -442,7 +471,7 @@ function showReceiptsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -480,7 +509,7 @@ function showReceiptsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -497,7 +526,7 @@ function showReceiptsMap() {
                     layer.bindTooltip(
 
                         `<strong>${csvStateName}</strong><br>
-                         2023 Tourism Receipts:
+                         2025 Tourism Receipts:
                          <strong>RM${receiptsBillion}B</strong>`,
 
                         {
@@ -546,25 +575,56 @@ function showRecoveryMap() {
         "Kuala Lumpur": "WP Kuala Lumpur",
         "Putrajaya": "WP Putrajaya",
         "Labuan": "WP Labuan",
-        "Pulau Pinang": "Penang"
+        "Pulau Pinang": "Penang",
+         "Malacca": "Melaka"
     };
 
-    function getRecoveryColor(recovery) {
+  function getRecoveryColor(recovery) {
 
-        if (recovery >= 1.00) {
-            return "#087f5b";
-        }
+    const values = recoveryMapData
+        .map(row => Number(row.recovery_ratio_2025_vs_2019))
+        .filter(value => Number.isFinite(value));
 
-        if (recovery >= 0.85) {
-            return "#52b788";
-        }
-
-        if (recovery >= 0.70) {
-            return "#f4a261";
-        }
-
-        return "#d95d39";
+    if (!Number.isFinite(recovery) || values.length === 0) {
+        return "#cccccc";
     }
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
+    if (min === max) {
+        return "#f4a261";
+    }
+
+    // Position between lowest (0) and highest (1)
+    const t = Math.max(
+        0,
+        Math.min(1, (recovery - min) / (max - min))
+    );
+
+    const colors = [
+        [217, 93, 57],   // Red
+        [244, 162, 97],  // Orange
+        [82, 183, 136],  // Light green
+        [8, 127, 91]     // Dark green
+    ];
+
+    const position = t * (colors.length - 1);
+    const index = Math.min(
+        Math.floor(position),
+        colors.length - 2
+    );
+
+    const fraction = position - index;
+
+    const rgb = colors[index].map((start, channel) =>
+        Math.round(
+            start + (colors[index + 1][channel] - start) * fraction
+        )
+    );
+
+    return `rgb(${rgb.join(",")})`;
+}
 
     currentStateLayer = L.geoJSON(
         malaysiaGeoJSON,
@@ -584,10 +644,16 @@ function showRecoveryMap() {
                         row => row.state === csvStateName
                     );
 
-                const recovery =
-                    stateData
-                        ? stateData.recovery_ratio_2023_vs_2019
-                        : null;
+                const rawRecovery =
+    stateData?.recovery_ratio_2025_vs_2019;
+
+const recovery =
+    rawRecovery !== null &&
+    rawRecovery !== undefined &&
+    rawRecovery !== "" &&
+    Number.isFinite(Number(rawRecovery))
+        ? Number(rawRecovery)
+        : null;
 
                 return {
                     color: "#ffffff",
@@ -620,7 +686,7 @@ function showRecoveryMap() {
 
                     const recoveryPercent =
                         (
-                            stateData.recovery_ratio_2023_vs_2019
+                            stateData.recovery_ratio_2025_vs_2019
                             * 100
                         ).toFixed(1);
 
@@ -684,45 +750,33 @@ function updateMapLegend(type) {
 
         if (type === "recovery") {
 
-            div.innerHTML = `
-                <h4>Tourism Recovery</h4>
+          div.innerHTML = `
+    <h4>Tourism Recovery</h4>
 
-                <div>
-                    <span class="legend-color"
-                          style="background:#087f5b"></span>
-                    <span>
-                        <strong>100%+</strong>
-                        Above 2019 level
-                    </span>
-                </div>
+    <div style="
+        width: 100%;
+        height: 16px;
+        border-radius: 5px;
+        background: linear-gradient(
+            to right,
+            #d95d39,
+            #f4a261,
+            #52b788,
+            #087f5b
+        );
+        margin: 12px 0 6px 0;
+    "></div>
 
-                <div>
-                    <span class="legend-color"
-                          style="background:#52b788"></span>
-                    <span>
-                        <strong>85–99.9%</strong>
-                        Near 2019 level
-                    </span>
-                </div>
-
-                <div>
-                    <span class="legend-color"
-                          style="background:#f4a261"></span>
-                    <span>
-                        <strong>70–84.9%</strong>
-                        Still recovering
-                    </span>
-                </div>
-
-                <div>
-                    <span class="legend-color"
-                          style="background:#d95d39"></span>
-                    <span>
-                        <strong>&lt;70%</strong>
-                        Further below 2019
-                    </span>
-                </div>
-            `;
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-weight: 600;
+    ">
+        <span>Lowest</span>
+        <span>Highest</span>
+    </div>
+`;
         }
 
 
@@ -733,7 +787,7 @@ function updateMapLegend(type) {
         if (type === "receipts") {
 
             div.innerHTML = `
-                <h4>2023 Tourism Receipts</h4>
+                <h4>2025 Tourism Receipts</h4>
 
                 <div>
                     <span class="legend-color"
@@ -776,7 +830,7 @@ function updateMapLegend(type) {
 if (type === "visitors") {
 
     div.innerHTML = `
-        <h4>2023 Domestic Visitors</h4>
+        <h4>2025 Domestic Visitors</h4>
 
         <div>
             <span class="legend-color"
@@ -811,7 +865,7 @@ if (type === "visitors") {
 if (type === "trips") {
 
     div.innerHTML = `
-        <h4>2023 Domestic Trips</h4>
+        <h4>2025 Domestic Trips</h4>
 
         <div>
             <span class="legend-color"
@@ -851,10 +905,10 @@ if (type === "trips") {
 
 function showVisitorsMap() {
 
-    const data2023 =
-        tourismMapData.filter(
-            row => row.year === 2023
-        );
+    const data2025 =
+    tourismMapData.filter(
+        row => Number(row.year) === LATEST_TOURISM_YEAR
+    );
 
     // Remove current state layer
     if (currentStateLayer) {
@@ -868,7 +922,8 @@ function showVisitorsMap() {
 
         // IMPORTANT:
         // Your CSV uses "Pulau Pinang"
-        "Penang": "Pulau Pinang"
+        "Penang": "Pulau Pinang",
+        "Malacca" : "Melaka"
     };
 
 
@@ -906,7 +961,7 @@ function showVisitorsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -939,7 +994,7 @@ function showVisitorsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -953,7 +1008,7 @@ function showVisitorsMap() {
 
                     layer.bindTooltip(
                         `<strong>${csvStateName}</strong><br>
-                        2023 Visitors:
+                        2025 Visitors:
                         <strong>${visitorsMillion}M</strong>`,
                         {
                             sticky: true
@@ -988,10 +1043,10 @@ layer.on("click", function() {
 
 function showTripsMap() {
 
-    const data2023 =
-        tourismMapData.filter(
-            row => row.year === 2023
-        );
+    const data2025 =
+    tourismMapData.filter(
+        row => Number(row.year) === LATEST_TOURISM_YEAR
+    );
 
     // Remove current state layer
     if (currentStateLayer) {
@@ -1002,7 +1057,8 @@ function showTripsMap() {
         "Kuala Lumpur": "WP Kuala Lumpur",
         "Putrajaya": "WP Putrajaya",
         "Labuan": "WP Labuan",
-        "Pulau Pinang": "Pulau Pinang"
+        "Pulau Pinang": "Pulau Pinang",
+        "Malacca":"Melaka"
     };
 
 
@@ -1039,7 +1095,7 @@ function showTripsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -1072,7 +1128,7 @@ function showTripsMap() {
                     geoStateName;
 
                 const stateData =
-                    data2023.find(
+                    data2025.find(
                         row => row.state === csvStateName
                     );
 
@@ -1085,7 +1141,7 @@ function showTripsMap() {
 
                     layer.bindTooltip(
                         `<strong>${csvStateName}</strong><br>
-                        2023 Trips:
+                        2025 Trips:
                         <strong>${tripsMillion}M</strong>`,
                         {
                             sticky: true
@@ -1119,17 +1175,18 @@ layer.on("click", function() {
 
 function updateDestinationProfile(stateName) {
 
-     const tourismStateName =
-        stateName === "Penang" ? "Pulau Pinang" : stateName;
+    const tourismStateName =
+        stateName === "Penang" ? "Pulau Pinang" :
+        stateName === "Malacca" ? "Melaka" :
+        stateName;
 
-    const recoveryStateName =
-        stateName === "Penang" ? "Pulau Pinang" : stateName;
-    // Get 2023 tourism data for selected state
-  
-    const state2023 = tourismMapData.find(
+    const recoveryStateName = tourismStateName;
+
+    // Get 2025 tourism data for selected state
+    const state2025 = tourismMapData.find(
         row =>
             row.state === tourismStateName &&
-            row.year === 2023
+            Number(row.year) === LATEST_TOURISM_YEAR
     );
 
     // Get recovery data for selected state
@@ -1144,7 +1201,7 @@ function updateDestinationProfile(stateName) {
     recoveryMapData.map(row => row.state)
 );
 
-    if (!state2023) {
+    if (!state2025) {
         console.log("No profile data found for:", stateName);
         return;
     }
@@ -1155,27 +1212,30 @@ function updateDestinationProfile(stateName) {
     // ========================================
 
     const receipts =
-        (state2023.receipts_rm_million / 1000)
+        (state2025.receipts_rm_million / 1000)
             .toFixed(2);
 
     const visitors =
-        (state2023.visitors_000 / 1000)
+        (state2025.visitors_000 / 1000)
             .toFixed(1);
 
     const trips =
-        (state2023.trips_000 / 1000)
+        (state2025.trips_000 / 1000)
             .toFixed(1);
 
-    const recovery =
-        recoveryData
-            ? (
-                recoveryData.recovery_ratio_2023_vs_2019
-                * 100
-              ).toFixed(1)
-            : null;
+    const recoveryRatio = Number(
+    recoveryData?.recovery_ratio_2025_vs_2019
+);
+
+const recovery =
+    recoveryData &&
+    Number.isFinite(recoveryRatio) &&
+    recoveryData.recovery_ratio_2025_vs_2019 !== ""
+        ? (recoveryRatio * 100).toFixed(1)
+        : null;
 
     const stay =
-        state2023.avg_length_of_stay;
+        state2025.avg_length_of_stay;
 
 
     // ========================================
@@ -1186,8 +1246,8 @@ function updateDestinationProfile(stateName) {
         .textContent = stateName;
 
     document.getElementById("profile-description")
-        .textContent =
-        `2023 tourism performance for ${stateName}.`;
+    .textContent =
+    `${LATEST_TOURISM_YEAR} tourism performance for ${stateName}, including recovery compared with 2019.`;
 
     document.getElementById("profile-receipts")
         .textContent =
@@ -1292,8 +1352,11 @@ function updatePriceExplorer() {
 
     } else {
 
-        document.getElementById("tourist-price").textContent = "Multiple";
-        document.getElementById("control-price").textContent = "Multiple";
+        document.getElementById("tourist-price").textContent =
+    "4 Staple Groups";
+
+document.getElementById("control-price").textContent =
+    "4 Staple Groups";
     }
     updatePriceChart(filteredData);
 }
@@ -1411,12 +1474,14 @@ function updateComparison() {
 
 function updateCompareCard(stateName, side) {
 
-    // Find 2023 tourism data
+    // Find 2025 tourism data
     const tourismData = tourismMapData.find(
-        row => row.state === stateName && row.year === 2023
+        row =>
+            row.state === stateName &&
+            Number(row.year) === LATEST_TOURISM_YEAR
     );
 
-    // Find recovery data
+    // Find 2025 recovery data
     const recoveryData = recoveryMapData.find(
         row => row.state === stateName
     );
@@ -1425,7 +1490,6 @@ function updateCompareCard(stateName, side) {
         console.log("No comparison data found for:", stateName);
         return;
     }
-
 
     // Convert values for display
     const receipts =
@@ -1437,10 +1501,18 @@ function updateCompareCard(stateName, side) {
     const trips =
         (tourismData.trips_000 / 1000).toFixed(1);
 
-    const recovery = recoveryData
-        ? (recoveryData.recovery_ratio_2023_vs_2019 * 100).toFixed(1)
-        : null;
+    // Recovery in 2025 compared with 2019
+    const recoveryRatio = Number(
+        recoveryData?.recovery_ratio_2025_vs_2019
+    );
 
+    const recovery =
+        recoveryData &&
+        recoveryData.recovery_ratio_2025_vs_2019 !== "" &&
+        recoveryData.recovery_ratio_2025_vs_2019 != null &&
+        Number.isFinite(recoveryRatio)
+            ? (recoveryRatio * 100).toFixed(1)
+            : null;
 
     // Update the card
     document.getElementById(`compare-name-${side}`)
@@ -1460,7 +1532,6 @@ function updateCompareCard(stateName, side) {
             ? `${recovery}%`
             : "No data";
 }
-
 
 // Update whenever Destination A changes
 document
@@ -1605,17 +1676,18 @@ recommendButton.addEventListener("click", function () {
 
 
     // Use latest tourism data only
-    const data2023 = tourismMapData.filter(
-        row => Number(row.year) === 2023
-    );
+    // Use latest tourism data only (2025)
+const data2025 = tourismMapData.filter(
+    row => Number(row.year) === LATEST_TOURISM_YEAR
+);
 
 
     // Find minimum and maximum values
-    const visitors = data2023.map(row =>
+    const visitors = data2025.map(row =>
         Number(row.visitors_000)
     );
 
-    const stays = data2023.map(row =>
+    const stays = data2025.map(row =>
         Number(row.avg_length_of_stay)
     );
 
@@ -1628,7 +1700,7 @@ recommendButton.addEventListener("click", function () {
 
 
     // Calculate score for every destination
-    const recommendations = data2023.map(destination => {
+    const recommendations = data2025.map(destination => {
 
         let score = 0;
         let reasons = [];
@@ -1641,9 +1713,16 @@ const recoveryData = recoveryMapData.find(row =>
     row.state === state
 );
 
-const recoveryValue = recoveryData
-    ? Number(recoveryData.recovery_ratio_2023_vs_2019)
-    : null;
+const rawRecovery =
+    recoveryData?.recovery_ratio_2025_vs_2019;
+
+const recoveryValue =
+    rawRecovery !== null &&
+    rawRecovery !== undefined &&
+    rawRecovery !== "" &&
+    Number.isFinite(Number(rawRecovery))
+        ? Number(rawRecovery)
+        : null;
 
         const visitorValue =
             Number(destination.visitors_000);
@@ -1875,7 +1954,7 @@ function displayRecommendations(destinations) {
    TOURISM FORECAST
 ================================= */
 
-Papa.parse("data/receipt_forecasts_f.csv", {
+Papa.parse("data/receipt_forecasts_2030.csv", {
     download: true,
     header: true,
     dynamicTyping: true,
@@ -1883,7 +1962,11 @@ Papa.parse("data/receipt_forecasts_f.csv", {
 
     complete: function(results) {
 
-        forecastData = results.data;
+        forecastData = results.data.map(row => ({
+    ...row,
+    state: normaliseStateName(row.state),
+    year: Number(row.year)
+}));
 
         console.log("Forecast data loaded!", forecastData);
 
@@ -1934,124 +2017,33 @@ document
         createForecastChart(selectedState);
     });
 
-    function createForecastChart(state) {
+  
+function createForecastChart(state) {
 
-    // =========================
-    // HISTORICAL DATA 2017-2023
-    // =========================
-
+    // Historical data: 2017–2025
     const historicalData = tourismMapData
         .filter(row =>
             row.state === state &&
             Number(row.year) >= 2017 &&
-            Number(row.year) <= 2023
+            Number(row.year) <= 2025
         )
-        .sort((a, b) =>
-            Number(a.year) - Number(b.year)
-        );
+        .sort((a, b) => Number(a.year) - Number(b.year));
 
-
-    // =========================
-    // FORECAST DATA 2024-2026
-    // =========================
-
+    // Forecast data: 2026–2030
     const stateForecast = forecastData
         .filter(row =>
-            row.state === state
+            row.state === state &&
+            Number(row.year) >= 2026 &&
+            Number(row.year) <= 2030
         )
-        .sort((a, b) =>
-            Number(a.year) - Number(b.year)
-        );
+        .sort((a, b) => Number(a.year) - Number(b.year));
 
-// =========================
-// UPDATE FORECAST KPI CARDS
-// =========================
-
-const forecast2024 = stateForecast.find(
-    row => Number(row.year) === 2024
-);
-
-const forecast2025 = stateForecast.find(
-    row => Number(row.year) === 2025
-);
-
-const forecast2026 = stateForecast.find(
-    row => Number(row.year) === 2026
-);
-
-
-// Display forecast values
-document.getElementById("forecast-2024").textContent =
-    forecast2024
-        ? "RM " +
-          (Number(forecast2024.forecast_receipts_rm_million) / 1000)
-              .toFixed(2) +
-          "B"
-        : "—";
-
-document.getElementById("forecast-2025").textContent =
-    forecast2025
-        ? "RM " +
-          (Number(forecast2025.forecast_receipts_rm_million) / 1000)
-              .toFixed(2) +
-          "B"
-        : "—";
-
-document.getElementById("forecast-2026").textContent =
-    forecast2026
-        ? "RM " +
-          (Number(forecast2026.forecast_receipts_rm_million) / 1000)
-              .toFixed(2) +
-          "B"
-        : "—";
-
-
-// Calculate projected growth from 2024 to 2026
-if (forecast2024 && forecast2026) {
-
-    const value2024 =
-        Number(forecast2024.forecast_receipts_rm_million);
-
-    const value2026 =
-        Number(forecast2026.forecast_receipts_rm_million);
-
-    const growth =
-        ((value2026 - value2024) / value2024) * 100;
-
-    document.getElementById("forecast-growth").textContent =
-        (growth >= 0 ? "+" : "") +
-        growth.toFixed(1) +
-        "%";
-
-} else {
-
-    document.getElementById("forecast-growth").textContent =
-        "—";
-}
-    // =========================
-    // YEARS
-    // =========================
-
-    const years = [
-        2017,
-        2018,
-        2019,
-        2020,
-        2021,
-        2022,
-        2023,
-        2024,
-        2025,
-        2026
-    ];
-
-
-    // =========================
-    // ACTUAL VALUES
-    // =========================
+    const years = Array.from(
+        { length: 14 },
+        (_, i) => 2017 + i
+    );
 
     const actualValues = years.map(year => {
-
         const row = historicalData.find(
             item => Number(item.year) === year
         );
@@ -2061,24 +2053,20 @@ if (forecast2024 && forecast2026) {
             : null;
     });
 
-
-    // =========================
-    // FORECAST VALUES
-    // =========================
-
     const forecastValues = years.map(year => {
 
-        // Start forecast line from 2023
-        if (year === 2023) {
-
-            const row2023 = historicalData.find(
-                item => Number(item.year) === 2023
+        // Connect forecast line to last historical point
+        if (year === 2025) {
+            const row2025 = historicalData.find(
+                item => Number(item.year) === 2025
             );
 
-            return row2023
-                ? Number(row2023.receipts_rm_million)
+            return row2025
+                ? Number(row2025.receipts_rm_million)
                 : null;
         }
+
+        if (year < 2026) return null;
 
         const row = stateForecast.find(
             item => Number(item.year) === year
@@ -2089,92 +2077,100 @@ if (forecast2024 && forecast2026) {
             : null;
     });
 
+    // Forecast KPI cards
+    const formatForecast = year => {
+        const row = stateForecast.find(
+            item => Number(item.year) === year
+        );
 
-    // =========================
-    // UPDATE TITLE
-    // =========================
+        return row
+            ? "RM " +
+              (Number(row.forecast_receipts_rm_million) / 1000)
+                  .toFixed(2) + "B"
+            : "—";
+    };
+
+    // Reuse existing KPI cards for new years
+    document.getElementById("forecast-2024").textContent =
+        formatForecast(2026);
+
+    document.getElementById("forecast-2025").textContent =
+        formatForecast(2028);
+
+    document.getElementById("forecast-2026").textContent =
+        formatForecast(2030);
+
+    // Projected growth from 2026 to 2030
+    const first = stateForecast.find(
+        row => Number(row.year) === 2026
+    );
+
+    const last = stateForecast.find(
+        row => Number(row.year) === 2030
+    );
+
+    let growthText = "—";
+
+    if (first && last) {
+        const start = Number(first.forecast_receipts_rm_million);
+        const end = Number(last.forecast_receipts_rm_million);
+
+        if (start !== 0) {
+            const growth = ((end - start) / start) * 100;
+
+            growthText =
+                (growth >= 0 ? "+" : "") +
+                growth.toFixed(1) + "%";
+        }
+    }
+
+    document.getElementById("forecast-growth").textContent =
+        growthText;
 
     document.getElementById("forecast-title").textContent =
-        `${state} Tourism Receipts: Actual vs Forecast`;
-
-
-    // =========================
-    // REMOVE OLD CHART
-    // =========================
+        `${state} Tourism Receipts: Historical vs Forecast`;
 
     if (forecastChart) {
         forecastChart.destroy();
     }
 
-
-    // =========================
-    // CREATE CHART
-    // =========================
-
-    const ctx =
-        document.getElementById("forecast-chart");
+    const ctx = document.getElementById("forecast-chart");
 
     forecastChart = new Chart(ctx, {
-
         type: "line",
 
         data: {
-
             labels: years,
 
             datasets: [
-
                 {
-                    label: "Actual 2017–2023",
-
+                    label: "Historical 2017–2025",
                     data: actualValues,
-
                     borderColor: "#087f5b",
-
-                    backgroundColor:
-                        "rgba(8, 127, 91, 0.10)",
-
+                    backgroundColor: "rgba(8, 127, 91, 0.10)",
                     borderWidth: 3,
-
                     pointRadius: 4,
-
                     pointBackgroundColor: "#087f5b",
-
                     tension: 0.3,
-
                     spanGaps: false
                 },
-
                 {
-                    label: "Forecast 2024–2026",
-
+                    label: "Forecast 2026–2030",
                     data: forecastValues,
-
                     borderColor: "#d99b2b",
-
-                    backgroundColor:
-                        "rgba(217, 155, 43, 0.10)",
-
+                    backgroundColor: "rgba(217, 155, 43, 0.10)",
                     borderWidth: 3,
-
                     borderDash: [7, 5],
-
                     pointRadius: 4,
-
                     pointBackgroundColor: "#d99b2b",
-
                     tension: 0.3,
-
                     spanGaps: false
                 }
-
             ]
         },
 
         options: {
-
             responsive: true,
-
             maintainAspectRatio: false,
 
             interaction: {
@@ -2183,67 +2179,48 @@ if (forecast2024 && forecast2026) {
             },
 
             plugins: {
-
                 legend: {
                     position: "top",
                     align: "end"
                 },
 
                 tooltip: {
-
                     callbacks: {
-
                         label: function(context) {
+                            if (context.raw === null) return "";
 
-                            if (context.raw === null) {
-                                return "";
-                            }
-
-                            return (
-                                context.dataset.label +
+                            return context.dataset.label +
                                 ": RM " +
-                                Number(context.raw)
-                                    .toLocaleString(
-                                        "en-MY",
-                                        {
-                                            maximumFractionDigits: 1
-                                        }
-                                    ) +
-                                " million"
-                            );
+                                Number(context.raw).toLocaleString(
+                                    "en-MY",
+                                    { maximumFractionDigits: 1 }
+                                ) +
+                                " million";
                         }
                     }
                 }
             },
 
             scales: {
-
                 x: {
-
                     title: {
                         display: true,
                         text: "Year"
                     },
-
                     grid: {
                         display: false
                     }
                 },
 
                 y: {
-
                     title: {
                         display: true,
                         text: "Tourism Receipts (RM million)"
                     },
-
                     ticks: {
-
                         callback: function(value) {
-
                             return "RM " +
-                                Number(value)
-                                    .toLocaleString("en-MY");
+                                Number(value).toLocaleString("en-MY");
                         }
                     }
                 }
@@ -2286,7 +2263,7 @@ let clusterTourismData = [];
 
 function loadRecoveryClusters() {
 
-    Papa.parse("data/recovery_index_f.csv", {
+    Papa.parse("data/recovery_index_2025.csv", {
         download: true,
         header: true,
         dynamicTyping: true,

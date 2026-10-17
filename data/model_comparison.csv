@@ -1,0 +1,7 @@
+model,MAPE_pct,Median_APE_pct,MAE_rm_million,RMSE_rm_million,failed_predictions,states_won,accuracy_pct (100 - MAPE)
+Holt,8.02,5.51,438.19,616.53,0,7,91.98
+Random Forest (pooled),12.77,10.99,885.94,1241.13,0,4,87.23
+Damped Holt,21.51,9.46,1053.24,1537.27,0,5,78.49
+Naive (last value),27.56,26.46,1817.58,2207.1,0,0,72.44
+"ARIMA(1,1,0)",35.93,33.77,2446.93,3008.78,0,0,64.07
+Linear Trend,52.19,50.15,3518.99,4163.38,0,0,47.81

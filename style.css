@@ -1873,7 +1873,15 @@ footer p {
 
 .recommend-placeholder {
     max-width: 430px;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
     text-align: center;
+    margin: auto;
 }
 
 .recommend-placeholder span {
@@ -2654,4 +2662,12 @@ footer p {
 
 .cluster-insights p:last-child {
     margin-bottom: 0;
+}
+
+
+/* Centre empty state inside recommendation results */
+.recommend-results:has(.recommend-placeholder) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
